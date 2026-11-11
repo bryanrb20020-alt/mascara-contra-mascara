@@ -1,0 +1,18 @@
+{
+  "name": "mascara-contra-mascara",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Máscara contra Máscara — roguelite de cartas de lucha libre",
+  "scripts": {
+    "android": "npx cap sync android && npx cap open android",
+    "ios": "npx cap sync ios && npx cap open ios"
+  },
+  "dependencies": {
+    "@capacitor/android": "latest",
+    "@capacitor/core": "latest",
+    "@capacitor/ios": "latest"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "latest"
+  }
+}

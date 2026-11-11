@@ -1,0 +1,9 @@
+{
+  "appId": "com.mascaracontramascara.juego",
+  "appName": "Máscara contra Máscara",
+  "webDir": "www",
+  "backgroundColor": "#120a1e",
+  "android": {
+    "allowMixedContent": false
+  }
+}
