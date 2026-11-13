@@ -1,6 +1,6 @@
 // Máscara contra Máscara — service worker (funciona sin internet)
 // Cuando subas una versión nueva del juego, cambia el número de VERSION para que los celulares la descarguen.
-const VERSION = 'mcm-v28';
+const VERSION = 'mcm-v29';
 const FILES = ['./', './index.html', './manifest.json', './icon-180.png', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './privacidad.html'];
 
 self.addEventListener('install', e => {
