@@ -603,7 +603,7 @@ function coinToss(){if(!C||C.tut)return startTurn();C.busy=true;render();const r
    addBtn('🔔 ¡A luchar!','gold',()=>{hidePanel();if(!C)return;if(win){C.busy=false;startTurn();}else{C.firstE=1;C.busy=true;C.p.block=C.startBlock;C.startBlock=0;shout('¡EMPIEZA '+rn.toUpperCase()+'!');setTimeout(()=>{if(C&&!C.over)enemyTurn();},W(700));}});};
   setTimeout(tick,W(60));};
  addBtn('🦅 Águila','gold',()=>go('a'));addBtn('☀️ Sol','blu',()=>go('s'));}
-function startCombat(key,kind,opt){opt=opt||{};if(isStory()){try{const cp=Object.assign({},P);delete cp.chSnap;delete cp.fSnap;P.fSnap=JSON.stringify(cp);P.fKey=key;}catch(e){}}const a=ACTS[Math.min(P.act,2)],e=EN[key],L=LUCH[P.l];let sc=opt.sc||a.sc;sc*=1+(P.cab>=1?.1:0)+(P.cab>=6?.1:0)+(P.cab>=10?.1:0);if(kind==='nemesis')sc*=1.2;if(!P.mode&&!P.daily&&!P.tut){sc*=[.85,1.03,1.2][DIF()];if(P.ch!==undefined&&kind!=='boss')sc*=1.1+.12*P.ch;if(P.ch!==undefined&&kind==='boss')sc*=[1.35,1.45,1.5,1.55,1.55,1.4,1.7][P.ch]||1;}
+function startCombat(key,kind,opt){opt=opt||{};BETO=opt.beto||0;if(isStory()){try{const cp=Object.assign({},P);delete cp.chSnap;delete cp.fSnap;P.fSnap=JSON.stringify(cp);P.fKey=key;}catch(e){}}const a=ACTS[Math.min(P.act,2)],e=EN[key],L=LUCH[P.l];let sc=opt.sc||a.sc;sc*=1+(P.cab>=1?.1:0)+(P.cab>=6?.1:0)+(P.cab>=10?.1:0);if(kind==='nemesis')sc*=1.2;if(!P.mode&&!P.daily&&!P.tut){sc*=[.85,1.03,1.2][DIF()];if(P.ch!==undefined&&kind!=='boss')sc*=1.1+.12*P.ch;if(P.ch!==undefined&&kind==='boss')sc*=[1.35,1.45,1.5,1.55,1.55,1.4,1.7][P.ch]||1;}
  const F=P.flags;const startAff=(has('halcon')?3:0)+(P.l==='X'?4:0)+upl('aff')+(F.banda?2:0)+(F.aff3&&P.act===2?3:0)+(F.entAff||0)+(kind==='boss'&&P.rel&&P.rel.mama>=2?2:0)+(kind==='boss'&&P.flags.abMem?3:0)+(META.belt==='torneo'?1:0);F.entAff=0;
  C={kind,turn:0,pile:shuffle(P.deck.map(c=>({...c}))),hand:[],disc:[],exh:[],energy:3,maxE:3+(has('imperial')?1:0)+(opt.energy||0),pen:0,aff:0,sus:0,played:[],relevoUsed:false,mods:opt.mods||{},
   startBlock:(has('acero')?8:0)+(F.perro?4:0)+(META.belt==='retos'?3:0),sub:0,vote:null,turnDmg:0,drawPen:0,stealNext:false,mv:null,llaveTurn:false,surrender:false,
@@ -632,7 +632,7 @@ function startCombat(key,kind,opt){opt=opt||{};if(isStory()){try{const cp=Object
  voz(kind==='tut'?[{t:'¡Bienvenido al ring, campeón!',p:1.4,r:1.2}]:kind==='boss'?[{t:'¡Atención, atención!',p:1.25,r:1.2},{t:'¡Esta noche, máscara contra máscara!',p:1.4,r:1.1},{t:'¡'+pnm()+'!',p:1.55,r:.95},{t:'¡contra '+e.n+'!',p:1.5,r:.95}]:[{t:'¡Señoras y señores!',p:1.2,r:1.2},{t:'¡En esta esquina!',p:1.3,r:1.15},{t:'¡'+pnm()+'!',p:1.55,r:.95},{t:'¡Y en la otra esquina!',p:1.3,r:1.15},{t:'¡'+e.n+'!',p:1.45,r:.95}],true);
  musicStart(!P.mode&&!P.daily&&!P.tut&&META.opt.vmus?(e.boss?'boss':'v'+vTier()):(e.boss?true:false));com('start');if(!C.tut)setTimeout(()=>narr('start'),900);
  setTimeout(()=>{if(!C)return;if(e.note)hint('en_'+key,'⚠ '+e.n+': '+e.note);if(P.inj&&P.inj.length)hint('lesion','🤕 Tienes una lesión: hay cartas de Lesión en tu mazo que no se pueden jugar. Cúralas en el gimnasio con Fisioterapia.');if($('#relevo').style.display==='flex')hint('relevo','🤝 El botón Relevo mete a tu compañero una vez por lucha: daño extra y +8 de vida.');},W(900));
- $('#relevo').style.display=C.stip==='relevos'&&P.partner&&P.partner!==P.l?'flex':'none';
+ $('#relevo').style.display=C.stip==='relevos'&&(C.beto?!C.betoGone:(P.partner&&P.partner!==P.l))?'flex':'none';
  coinToss();}
 function mulligan(){if(!C||C.busy||C.over||C.mullUsed||C.turn!==1||C.played.length)return;C.mullUsed=true;const n=C.hand.filter(c=>def(c).t!=='fin').length;C.pile.push(...C.hand.filter(c=>def(c).t!=='fin'));C.hand=C.hand.filter(c=>def(c).t==='fin');shuffle(C.pile);draw(n);sfx.card();setLog('🔄 Cambiaste tu mano.');render();}
 function draw(n){for(let i=0;i<n;i++){if(C.hand.length>=10)return;if(!C.pile.length){if(!C.disc.length)return;C.pile=shuffle(C.disc);C.disc=[];}C.hand.push(C.pile.pop());}}
@@ -653,6 +653,7 @@ function hurtE(d,src){const E=C.e;if(src!=='x'&&E.st.evade){E.st.evade=0;float('
  if(r>0){C.anim.ef=8;if(r>=14){sfx.big();shake();C.anim.stop=6;vib(60);}else{sfx.hit();vib(20);}juice('e',r);}else sfx.block();
  enemyChecks();return r;}
 function enemyChecks(){const E=C.e;if(C.surrender)return;
+ if(C.beto===2&&!C.betoGone&&E.tagIn&&E.hp<=E.max*.45&&E.hp>0){betrayal();return;}
  if(E.hp<=0&&E.tag&&!E.tagIn&&!(E.revive&&!E.revived)){E.tagIn=1;const T=E.tag;E.n=T.n;E.m=T.m;E.mv=T.mv;E.mi=0;E.hp=E.max=T.hp;E.block=0;E.st={};E.phase2=true;shout('¡ENTRA SU PAREJA!');sfx.crowd();vib(80);setLog('🤝 Cayó uno... ¡ahora entra <b>'+T.n+'</b> con '+T.hp+' de vida!');com('revive');}
  if(E.hp>0&&EN[E.key]&&EN[E.key].boss&&!E.phase2&&E.hp<=E.max*.5){E.phase2=true;E.st.furia=(E.st.furia||0)+2;E.ai='agresivo';shout('¡FASE 2!');setLog('😤 '+E.n+' se enfurece: +2 de furia y ahora es más agresivo.');hint('phase','😤 Los jefes se enfurecen a la mitad de su vida: ganan furia y se vuelven más agresivos.');}
  if(E.hp<=0&&E.revive&&!E.revived){E.revived=true;E.hp=Math.round(E.max*E.revive);E.st={};E.block=0;shout('¡SE LEVANTA! ¡NO PUEDE SER!');com('revive');hint('revive','💀 Algunos rivales reviven una vez. ¡Guarda algo de daño!');sfx.crowd();setLog('⚠ '+E.n+' se levanta con '+E.hp+' de vida.');}
@@ -708,7 +709,7 @@ function combos(d){const pl=C.played,air=pl.filter(x=>x.air).length,ll=pl.filter
  if(d.air&&air===3){sfx.combo();shout('¡COMBO: VUELO EN CADENA!');unlock('vuelo');hurtE(10,'x');addAff(2);setLog('🪽🪽🪽 ¡Vuelo en cadena! +10 de daño y +2 de afición.');}
  if(d.llave&&ll===2&&C.e.hp>0){sfx.combo();shout('¡COMBO: LLAVE COMBINADA!');C.e.st.debil=(C.e.st.debil||0)+1;unlock('combinada');C.e.st.abierto=(C.e.st.abierto||0)+2;setLog('🔗🔗 ¡Llave combinada! Rival Débil y Abierto.');}
  if(d.t==='atk'&&atk===4){sfx.combo();shout('¡COMBO: RÁFAGA!');unlock('rafaga');C.energy++;setLog('👊x4 ¡Ráfaga! +1 de energía.');}}
-function relevo(){if(!C||C.busy||C.relevoUsed||C.over||C.tut||C.stip!=='relevos')return;C.relevoUsed=true;const k=P.partner,m=(upl('relevo')?1.5:1)*(P.flags.relevoBoost&&P.act===1?1.5:1),E=C.e;sfx.slap();shout('¡RELEVO! ENTRA '+LUCH[k].n.toUpperCase());voz([{t:'¡Relevo!',p:1.5,r:1.2},{t:'¡Entra '+LUCH[k].n+'!',p:1.45,r:1.1}],true);
+function relevo(){if(!C||C.busy||C.over||C.tut||C.stip!=='relevos')return;if(C.beto)return betoRelevo();if(C.relevoUsed)return;C.relevoUsed=true;const k=P.partner,m=(upl('relevo')?1.5:1)*(P.flags.relevoBoost&&P.act===1?1.5:1),E=C.e;sfx.slap();shout('¡RELEVO! ENTRA '+LUCH[k].n.toUpperCase());voz([{t:'¡Relevo!',p:1.5,r:1.2},{t:'¡Entra '+LUCH[k].n+'!',p:1.45,r:1.1}],true);
  C.mv={who:'p',type:'air',t:0,dur:30};
  if(k==='T'){hurtE(dmgCalc(Math.round(12*m),{st:{}},E),'x');addAff(2);}if(k==='R'){hurtE(dmgCalc(Math.round(14*m),{st:{}},E),'x');E.st.debil=(E.st.debil||0)+2;}
  if(k==='G')hurtE(dmgCalc(Math.round(18*m),{st:{}},E),'x');if(k==='V')for(let i=0;i<4;i++)hurtE(dmgCalc(Math.round(4*m),{st:{}},E),'x');
@@ -824,7 +825,7 @@ function repOf(){return REPS[P.rep]||null;}
 function repPay(){const r=repOf();return r?r.pay:0;}
 Object.assign(CAST,{abuelo:['👴','Abuelo Ramón','tu abuelo'],vane:['💃','Vanessa',''],papa:['🧔','Tu papá',''],hermano:['👦','Toño','tu hermano menor'],reporter:['🎤','Reportera',''],doc:['🩺','La doctora',''],sys:['📊','',''],fan:['🙋','Un aficionado','']});
 for(const k in REPS)CAST[k]=[REPS[k].e,REPS[k].n,'representante'];
-function castOf(w){if(w==='kid'&&P&&!P.mode&&(P.ch===undefined||P.ch<2)&&!(P.used||[]).includes('kid_traicion'))return['🙂','Beto','tu amigo de la infancia'];if(w==='rep')return P&&REPS[P.rep]?[REPS[P.rep].e,REPS[P.rep].n,'tu representante']:CAST.chuy;return CAST[w];}
+function castOf(w){if(w==='kid'&&P&&!P.mode&&(P.ch===undefined||P.ch<=2)&&!(P.flags&&P.flags.kidHeel))return['🙂','Beto','tu amigo de la infancia'];if(w==='rep')return P&&REPS[P.rep]?[REPS[P.rep].e,REPS[P.rep].n,'tu representante']:CAST.chuy;return CAST[w];}
 function fmt(t){return String(t).replace(/\{n\}/g,pnm()).replace(/\{r\}/g,P&&REPS[P.rep]?REPS[P.rep].n:'tu representante').replace(/\{s\}/g,P&&REPS[P.scam]?REPS[P.scam].n:'');}
 function seq(a,done){let i=0;const nx=()=>{if(i>=a.length)return done();a[i++](nx);};nx();}
 function RR(k){return(P.rel&&P.rel[k])||0;}
@@ -834,7 +835,7 @@ function deltaText(s){const o=[];const d=(v,l)=>{if(v)o.push(l+' '+(v>0?'+':'')+
  const RI_={kid:'🦂 Kid',mama:'👩 Mamá',abuelo:'👴 Abuelo',rep:'🤝 Repr.'};for(const k in RI_){const v=RR(k)-(s.rel[k]||0);if(v)o.push(RI_[k]+' '+(v>0?'💚 mejora':'💔 empeora'));}
  d((P.flags.pBlk||0)-s.pb,'🛡 inicial');d((P.flags.pFur||0)-s.pf,'🔥 furia');d((P.flags.entAff||0)-s.af,'📣 afición');return o.join(' · ');}
 function relHTML(){if(!P||!P.rel)return'';const ch=(k,e,n)=>{const v=RR(k);return'<span class="'+(v>=2?'up':v<=-2?'dn':'')+'">'+e+' '+n+' '+(v>=2?'💚':v<=-2?'💔':'🤝')+'</span>';};
- const heel=P.ch>2||(P.ch===2&&P.row>=1);let h='<div class="rels">'+(heel?ch('kid','🦂','Alacrán'):ch('kid','👦','Beto'))+ch('mama','👩','Mamá')+(P.ab==='dead'?'<span>🕯️ Abuelo</span>':ch('abuelo','👴','Abuelo'+(P.ab==='sick'?' 🏥':'')));const r=repOf();if(r)h+='<span>'+r.e+' '+r.n.split(' ').slice(-1)[0]+'</span>';return h+'</div>';}
+ const heel=P.ch>2||!!(P.flags&&P.flags.kidHeel);let h='<div class="rels">'+(heel?ch('kid','🦂','Alacrán'):ch('kid','👦','Beto'))+ch('mama','👩','Mamá')+(P.ab==='dead'?'<span>🕯️ Abuelo</span>':ch('abuelo','👴','Abuelo'+(P.ab==='sick'?' 🏥':'')));const r=repOf();if(r)h+='<span>'+r.e+' '+r.n.split(' ').slice(-1)[0]+'</span>';return h+'</div>';}
 function REL(k,n){P.rel=P.rel||{};P.rel[k]=Math.max(-5,Math.min(5,(P.rel[k]||0)+n));}
 function drinkUp(n){P.drink=(P.drink||0)+(n||1);}
 
@@ -842,7 +843,7 @@ function drinkUp(n){P.drink=(P.drink||0)+(n||1);}
 function choice(who,q,opts,cb){const c=who==='yo'?[LUCH[P.l].e,pnm()]:(castOf(who)||CAST.nar);
  showPanel('<div class="dlg"><div class="who"><span class="pe">'+c[0]+'</span><div><b>'+(c[1]||'')+'</b><span class="small">tu decisión</span></div></div><div class="tx">'+fmtW(who,q)+'</div></div>');
  opts.filter(o=>!o[2]||o[2]()).forEach(([lab,fn])=>addBtn(fmt(lab),'blu',()=>{const s0=snap();const r=fn();let L=typeof r==='string'?[['nar',r]]:(r||[]);const d=deltaText(s0);if(d)L=L.concat([['sys',d]]);talk(L,cb);}));}
-function runStory(id,cb){const f=SE[id];if(!f)return cb();(P.used=P.used||[]).push(id);const e=f();if(!e)return cb();talk(e.l||[],()=>{if(!e.o||!e.o.length)return cb();choice(e.who||'nar',e.q||'¿Qué haces?',e.o,cb);});}
+function runStory(id,cb){const f=BETO_ST[id]||SE[id];if(!f)return cb();(P.used=P.used||[]).push(id);const e=f();if(!e)return cb();talk(e.l||[],()=>{if(!e.o||!e.o.length)return cb();choice(e.who||'nar',e.q||'¿Qué haces?',e.o,cb);});}
 const SE={
  abuelo_mascara:()=>({l:[['nar','Antes de tu primera lucha, tu abuelo Ramón te espera en la puerta de la vecindad con una caja de zapatos.'],['abuelo','Esta máscara la usé en 1974, en la Arena Coliseo. Me decían "El Gavilán". Una sola lucha... y perdí.'],['abuelo','Pero ese día supe lo que era volar. Ahora es tuya, {n}. Llévala más lejos de lo que yo llegué.']],who:'abuelo',q:'¿Qué le dices a tu abuelo?',o:[
   ['🙏 "Te prometo llevarla hasta el estadio"',()=>{REL('abuelo',2);return[['abuelo','Con eso me basta, mijo. Ahora ve y que se oiga tu nombre.']];}],
@@ -1013,7 +1014,15 @@ function chapterEnd(){const ch=P.ch;const vt=vaneTick();talk(CHEND[ch]().filter(
 function upgCards(n,cb){const ok=c=>!c.up&&CARDS[c.id]&&CARDS[c.id].up;if(n<=0||!P.deck.some(ok))return cb();if(!META.hints||!META.hints.upg){META.hints=META.hints||{};META.hints.upg=1;saveMeta();flashMsg('⬆️ Ganar ya no da cartas nuevas: mejora una de las tuyas. Las cartas mejoradas (+) pegan o cubren más.');}sfx.win&&sfx.win();
  pickCard('⬆️ Mejora una carta ('+n+' restante'+(n>1?'s':'')+')<br><span class="small">Don Chuy te enseña a perfeccionar tus llaves. Elige cuál mejorar.</span>',ok,c=>{c.up=true;float&&0;saveRun();upgCards(n-1,cb);},()=>cb());
  const b=document.querySelector('#pn .btns button:last-child,#pn button:last-child');if(b&&/Volver/.test(b.textContent))b.textContent='Saltar';}
-function genRoad(ch){const opts=shuffle(['train','shop','party','family','life']).slice(0,3);if(P.love==='vane'||P.love==='pareja')opts[0]='vane';if(META.nemesis&&!P.nemDone&&ch>=1&&chance(.4))opts[2]='nemesis';else if(SEASON.en&&!P.tempDone&&ch>=1&&chance(.25))opts[2]='temporada';
+function genRoad(ch){const r=genRoad0(ch);if(P.mode)return r;
+ if(ch===0){r[1]={t:'fight',beto:1,stip:'relevos'};r.splice(2,0,{t:'story',id:'lic_contrata'});}
+ if(ch===1){r.splice(2,0,{t:'story',id:'beto_segundo'});r.splice(4,0,{t:'story',id:'beto_casa'});r.splice(6,0,{t:'story',id:'lic_coche'});}
+ if(ch===2){r[0]={t:'story',id:'traicion_previa'};r.splice(1,0,{t:'fight',beto:2,stip:'relevos'},{t:'story',id:'kid_traicion'});}
+ if(ch===3)r.splice(3,0,{t:'story',id:'beto_3am'});
+ if(ch===4)r.splice(3,0,{t:'story',id:'beto_patio'});
+ if(ch===6)r[0]={t:'story',id:'lic_revela'};
+ return r;}
+function genRoad0(ch){const opts=shuffle(['train','shop','party','family','life']).slice(0,3);if(P.love==='vane'||P.love==='pareja')opts[0]='vane';if(META.nemesis&&!P.nemDone&&ch>=1&&chance(.4))opts[2]='nemesis';else if(SEASON.en&&!P.tempDone&&ch>=1&&chance(.25))opts[2]='temporada';
  return[{t:'story',slot:'A'},{t:ch>=3&&chance(.5)?'elite':'fight',stip:ch>=1&&chance(.4)?pick(Object.keys(STIPS)):null},{t:'fork',o:opts},{t:'story',slot:'B'},{t:'boss'}];}
 const FORKS={vane:['♥','Ver a Vanessa','Si no le das tiempo, se cansa'],train:['🏋️','Entrenar con Don Chuy','Descansar, ganar vida máxima o cambiar cartas'],shop:['🛒','Tianguis de la lucha','Compra cartas y objetos'],party:['🍻','Salir de fiesta','Diversión... con consecuencias'],family:['🏠','Visitar a la familia','Comida, consejos y broncas de casa'],life:['📰','Salir a la calle','Cualquier cosa puede pasar'],nemesis:['😡','Revancha','Tu némesis te espera'],temporada:['🎉','Lucha de temporada','Máscara exclusiva del evento']};
 function stepInfo(s,i){const v=VEN[P.ch];if(s.t==='story')return['❓',i<P.row?'Capítulo de tu historia':'Algo va a pasar...','Diálogo y decisiones'];if((s.t==='fight'||s.t==='elite')&&s.stip)return[STIPS[s.stip].e,STIPS[s.stip].n+(s.t==='elite'?' (estelar)':''),STIPS[s.stip].d];if(s.t==='fight')return['🤼','Lucha en el cartel','Rival de '+v.n];if(s.t==='elite')return['💀','Lucha estelar','Un rival peligroso'];
@@ -1029,7 +1038,7 @@ function showRoad(){C=null;if(P.ch===undefined){P.ch=[0,3,5][Math.min(P.act,2)];
  addBtn('📱 Celular','alt',celularView);addBtn('📜 Mi mazo ('+P.deck.length+')','alt',()=>deckView(showMap));addBtn('🎭 Mis máscaras','alt',()=>vitrinaView(showMap));addBtn('🏠 Salir al menú (se guarda)','alt',()=>{saveRun();menu();});if(P.chSnap&&P.row>0)addBtn('🔁 Reiniciar capítulo','alt',()=>{showPanel('<h1>¿Reiniciar el capítulo '+(P.ch+1)+'?</h1><p>Vuelves al inicio del capítulo con lo que tenías al llegar. Se pierde lo que hayas ganado en este capítulo.</p>');addBtn('Sí, reiniciar','gold',chRestart);addBtn('No','alt',showMap);});addBtn('🏳️ Rendirse','alt',()=>{showPanel('<h1>¿Rendirte?</h1><p>Terminas la historia y cobras la fama que llevas.\n\n<span class="small">💾 Tu historia se guarda sola. Puedes cerrar el juego y seguir después.</span></p>');addBtn('Sí, rendirme','',()=>endRun(false));addBtn('No','alt',showMap);});}
 function doStep(s){const a=ACTS[P.act];P._lt=s.t;
  if(s.t==='story'){if(P.flags.proLater){const L_=P.flags.proLater;P.flags.proLater=0;return talk(L_,()=>whyChoice(next));}if(!s.id)s.id=storyId(P.ch,s.slot);return runStory(s.id,next);}
- if(s.t==='fight'){const k=pick(a.pool);return(P.qs&&P.ch===0&&P.row===0?(f=>f()):preLife)(()=>startCombat(k,'lucha',{stip:s.stip}));}
+ if(s.t==='fight'){const k=s.beto===1?'gemelos':s.beto===2?'gemelos2':pick(a.pool);return(s.beto||(P.qs&&P.ch===0&&P.row===0)?(f=>f()):preLife)(()=>startCombat(k,'lucha',{stip:s.stip,beto:s.beto}));}
  if(s.t==='elite')return preLife(()=>entrance(()=>startCombat(a.elite,'elite',{stip:s.stip})));
  if(s.t==='boss'){const bk=chBoss();return vsIntro(bk,()=>{const B=EN[bk];showPanel('<h1>🎭 MÁSCARA CONTRA MÁSCARA</h1><p>'+B.n+' te espera en el centro del ring.\nSi pierdes, te quitan la máscara frente a todos.'+(B.note?'\n\n⚠ '+B.note:'')+'</p>');addBtn('¡A la lucha!','gold',()=>entrance(()=>startCombat(bk,'boss')));});}}
 function doFork(k){P._lt=k;if(k==='vane')return vaneVisit(next);if(k==='train')return gym();if(k==='shop')return shop();if(k==='party')return partyEv(next);if(k==='family')return familyEv(next);if(k==='life')return lifeEv('map',next);if(k==='nemesis'){P.nemDone=1;return enterNode('nemesis');}if(k==='temporada'){P.tempDone=1;return enterNode('temporada');}}
@@ -1113,7 +1122,7 @@ const PRO_BETO=[
  [['nar','La noche del temblor, tú y Beto durmieron en la calle con sus familias. Para no tener miedo, se inventaron sus nombres de luchador.'],['nar','Él escogió "Alacrán". Tú todavía no sabías cuál sería el tuyo.']],
  [['nar','Tú y Beto grababan sus luchas con el celular de la mamá de él. Tienen más de doscientos videos. En todos, Beto hace trampa.']]];
 const PRO_KID=[
- [['kid','¡{n}! Por fin te animaste, carnal. Ya me dicen Kid Alacrán, ¿cómo ves? Tú y yo, como lo juramos: hasta el estadio.'],['yo','Tú y yo, Beto. Hasta el estadio.']],
+ [['kid','¡{n}! Por fin te animaste, carnal. Ya hasta tengo máscara nueva, ¿cómo ves? Tú y yo, como lo juramos: hasta el estadio.'],['yo','Tú y yo, Beto. Hasta el estadio.']],
  [['nar','Beto te espera afuera de tu casa, sentado en la banqueta con dos máscaras en la mano.'],['kid','Una es para ti, carnal. Ya me cansé de esperarte. Hoy empezamos.'],['yo','¿Y si no somos buenos, Beto?'],['kid','Pues nos hacemos buenos. Como siempre.']],
  [['kid','(por mensaje) ¿Ya viste el cartel de Don Chuy? Si no vas tú, voy a ir a sacarte de las greñas. Como en la primaria.'],['yo','Ya voy, ya voy.']],
  [['nar','Beto llega corriendo al mercado, sin aire, con un papel arrugado en la mano.'],['kid','¡Carnal! ¡Don Chuy nos va a probar a los dos! ¡Mañana a las seis!'],['yo','¿A las seis de la mañana?'],['kid','Los campeones no duermen, {n}.']]];
@@ -1132,9 +1141,9 @@ const PRO_WHY=[
  ['chuy','Todos los que entran por esa puerta quieren algo. ¿Tú qué buscas, {n}?'],
  ['abuelo','Mijo... antes de que te subas a ese ring, dime por qué lo haces.']];
 function prologueParts(l){const LS=LSTORY[l];const intro=pick([LS.intro].concat(LSTORYX[l]||[]));const ip=intro.split('\n\n');
- return{a:[['nar',pick(PRO_OPEN)],['nar',ip[0]]].concat(pick(PRO_ABU)),b:ip.slice(1).map(x=>['nar',x]).concat(pick(PRO_FAM),pick(PRO_BETO),[['nar','Juraron con el meñique que un día llegarían juntos a la Arena Nacional... y después a un estadio lleno.']],pick(PRO_KID),pick(PRO_CHUY),pick(PRO_LIC),[['lupe','Y yo soy Doña Lupe. El patio es mío, la lona es mía y las sillas son prestadas. Si rompen algo, lo pagan.']])};}
+ return{a:[['nar',pick(PRO_OPEN)],['nar',ip[0]]].concat(pick(PRO_ABU)),b:ip.slice(1).map(x=>['nar',x]).concat(pick(PRO_FAM),pick(PRO_BETO),[['nar','Juraron con el meñique que un día llegarían juntos a la Arena Nacional... y después a un estadio lleno.']],pick(PRO_KID),pick(PRO_CHUY),[['lupe','Y yo soy Doña Lupe. El patio es mío, la lona es mía y las sillas son prestadas. Si rompen algo, lo pagan.']])};}
 function prologue(l){const LS=LSTORY[l];const intro=pick([LS.intro].concat(LSTORYX[l]||[]));
- const L=[['nar',pick(PRO_OPEN)]].concat(intro.split('\n\n').map(x=>['nar',x]),pick(PRO_FAM),pick(PRO_ABU),pick(PRO_BETO),[['nar','Juraron con el meñique que un día llegarían juntos a la Arena Nacional... y después a un estadio lleno.']],pick(PRO_KID),pick(PRO_CHUY),pick(PRO_LIC),[['lupe','Y yo soy Doña Lupe. El patio es mío, la lona es mía y las sillas son prestadas. Si rompen algo, lo pagan.']]);
+ const L=[['nar',pick(PRO_OPEN)]].concat(intro.split('\n\n').map(x=>['nar',x]),pick(PRO_FAM),pick(PRO_ABU),pick(PRO_BETO),[['nar','Juraron con el meñique que un día llegarían juntos a la Arena Nacional... y después a un estadio lleno.']],pick(PRO_KID),pick(PRO_CHUY),[['lupe','Y yo soy Doña Lupe. El patio es mío, la lona es mía y las sillas son prestadas. Si rompen algo, lo pagan.']]);
  return L;}
 function whyChoice(cb){const q=pick(PRO_WHY);talk([q],()=>choice(q[0],'¿Por qué quieres ser luchador?',[
  ['👩 "Por mi familia"',()=>{REL('mama',1);REL('abuelo',1);return[[q[0],q[0]==='abuelo'?'Esa es la mejor razón que hay, mijo.':'Buena respuesta. La familia aguanta cuando todo lo demás se cae.']];}],
@@ -1347,10 +1356,10 @@ function pxTextNode(n){const t=n.nodeValue;if(!t||!EMTEST.test(t))return;const p
 function pxWalk(r){if(!r)return;if(r.nodeType===3)return pxTextNode(r);if(r.nodeType!==1||/^(SCRIPT|STYLE|TEXTAREA|INPUT)$/.test(r.nodeName))return;const tw=document.createTreeWalker(r,4);const L=[];let n;while((n=tw.nextNode()))L.push(n);L.forEach(pxTextNode);}
 function pxStart(){if(typeof MutationObserver==='undefined'||!document.body||!document.createTreeWalker)return;pxWalk(document.body);new MutationObserver(ms=>{for(const m of ms){if(m.type==='characterData')pxTextNode(m.target);else m.addedNodes.forEach(pxWalk);}}).observe(document.body,{childList:true,subtree:true,characterData:true});}
 
-// ================= v2.12: ring, luchador, celular, retos, vitrina, calidad =================
+// ================= v2.13: ring, luchador, celular, retos, vitrina, calidad =================
 // ---------- luchas especiales ----------
 const STIPS={jaula:{n:'Lucha en jaula',e:'🔒',d:'Nadie puede salir del ring. Las aéreas pegan 30% más desde lo alto.'},todo:{n:'Todo se vale',e:'🪑',d:'No hay réferi que castigue. Los dos pegan más fuerte.'},cabellera:{n:'Cabellera contra cabellera',e:'💇',d:'Si ganas, rapas al rival frente a todos (+20⭐).'},relevos:{n:'Lucha de parejas (2 vs 2)',e:'🤝',d:'Tú y tu compañero contra dos rivales: hay que vencer a los dos. Usa el botón Relevo para meter a tu compañero una vez.'}};
-function applyStip(){const s=C.stip;if(!s)return;const S=STIPS[s];if(s==='todo'){C.e.dmgB+=3;C.p.st.furia=(C.p.st.furia||0)+1;}if(s==='relevos'){if(!P.partner||P.partner===P.l)P.partner=pick(Object.keys(LUCH).filter(k=>k!==P.l));const pool=(ACTS[Math.min(P.act||0,2)].pool||[]).filter(k=>k!==C.e.key&&EN[k]);const tk=pool.length?pick(pool):'gallo',T=EN[tk];C.e.tag={key:tk,n:T.n,m:T.m,mv:T.mv,hp:Math.round(C.e.max*.55)};C.startBlock+=4;setTimeout(()=>hint('tag','🤝 Lucha de parejas: cuando venzas a '+C.e.n+' entra '+T.n+'. Tu botón Relevo mete a tu compañero una vez: úsalo cuando lo necesites.'),W(1200));}
+function applyStip(){const s=C.stip;if(!s)return;const S=STIPS[s];if(s==='todo'){C.e.dmgB+=3;C.p.st.furia=(C.p.st.furia||0)+1;}if(s==='relevos'){C.beto=BETO;if(C.beto){C.e.tag={key:'gemelo',n:C.e.n.replace(/ I$/,' II'),m:C.e.m,mv:C.e.mv,hp:Math.round(C.e.max*.6)};C.startBlock+=4;return;}if(!P.partner||P.partner===P.l)P.partner=pick(Object.keys(LUCH).filter(k=>k!==P.l));const pool=(ACTS[Math.min(P.act||0,2)].pool||[]).filter(k=>k!==C.e.key&&EN[k]);const tk=pool.length?pick(pool):'gallo',T=EN[tk];C.e.tag={key:tk,n:T.n,m:T.m,mv:T.mv,hp:Math.round(C.e.max*.55)};C.startBlock+=4;setTimeout(()=>hint('tag','🤝 Lucha de parejas: cuando venzas a '+C.e.n+' entra '+T.n+'. Tu botón Relevo mete a tu compañero una vez: úsalo cuando lo necesites.'),W(1200));}
  setTimeout(()=>{if(!C)return;shout(S.n.toUpperCase()+'!');setLog(S.e+' <b>'+S.n+'</b>: '+S.d);voz([{t:'¡'+S.n+'!',p:1.25,r:1.1}]);},W(1300));}
 // ---------- interferencias ----------
 function interf(){C.busy=true;render();const rn=C.e.n.replace(/ \(.*\)$/,'');const rep=repOf();const mine=rep&&chance(.4);
@@ -1530,7 +1539,7 @@ function amiEnd(won){const a=amiCfg();META.amiW=META.amiW||{w:0,l:0};META.amiW[w
 
 // ---------- 2 vs 2: compañeros en el delantal ----------
 function tagMini(x,y,m,flip,trunk,sty){cx.save();cx.translate(x,y);cx.scale(1.15,1.15);try{luchador(cx,0,0,m,flip,'#d9a066',trunk,false,{style:sty});}catch(e){}cx.restore();}
-function tagDraw(){if(!C)return;cx.globalAlpha=.85;if(P.partner&&!C.relevoUsed){const L=LUCH[P.partner];tagMini(0,58,L.m,false,L.m[1],P.partner);}
+function tagDraw(){if(!C)return;cx.globalAlpha=.85;if(C.beto&&!C.betoGone){tagMini(0,58,EN.kid.m,false,EN.kid.m[1],'T');}else if(!C.beto&&P.partner&&!C.relevoUsed){const L=LUCH[P.partner];tagMini(0,58,L.m,false,L.m[1],P.partner);}
  const T=C.e.tag;if(T&&!C.e.tagIn)tagMini(182,58,T.m,true,T.m[1],ESTY[T.key]||'T');cx.globalAlpha=1;}
 
 // ---------- Nivel de luchador (1-50) ----------
@@ -1675,11 +1684,71 @@ function juice(who,r){if(!C||r<=0)return;const big=r>=14;C.anim.stop=Math.max(C.
 // ---------- Kid Alacrán: provocaciones ----------
 const TAUNT=['¿Te acuerdas del patio, {n}? Ahí siempre perdías.','¡Esta arena es mía! Tú solo vienes de visita.','El abuelo estaría avergonzado de verte así.','¡Levántate! Quiero que todos vean cómo te quito la máscara.','Yo sí hice lo que había que hacer para llegar. ¿Y tú?','¡Mírate! Sigues siendo el mismo chamaco de la lona parchada.','Nadie se acuerda de los que luchan limpio, {n}.'];
 
+
+// ---------- Arco de Beto ----------
+let BETO=0;
+function betoRelevo(){if(C.betoGone){C.relevoUsed=true;flashMsg('Beto ya no está en tu esquina...');return;}if(C.betoUsed>=(C.beto===1?2:1)){C.relevoUsed=true;flashMsg('Beto necesita recuperar el aire.');return;}C.betoUsed=(C.betoUsed||0)+1;C.relevoUsed=C.betoUsed>=(C.beto===1?2:1);const E=C.e;sfx.slap();shout('¡RELEVO! ¡ENTRA BETO!');voz([{t:'¡Relevo! ¡Entra Beto!',p:1.45,r:1.15}],true);
+ C.mv={who:'p',type:'air',t:0,dur:30};hurtE(dmgCalc(14,{st:{}},E),'x');addAff(2);healP(8);setLog('🤝 Beto entra volando: ¡topé suicida! Tú recuperas el aire (+8 de vida).');setTimeout(()=>say('kid',pick(['¡Como en el patio, carnal!','¡Tú y yo, hasta el estadio!','¡Te cubro, carnal!'])),W(400));
+ if(E.hp<=0)return win();render();}
+function betrayal(){C.betoGone=1;C.busy=true;C.over=true;const k=RR('kid');render();
+ const seq=[];
+ if(k>=1){seq.push(()=>{say('kid','Perdóname, carnal...');setLog('😶 Estiras la mano para el relevo. Beto te mira... y se baja del ring.');});}
+ else if(k<=-1){seq.push(()=>{say('kid','Nada personal, {n}.');setLog('🗡️ Estiras la mano para el relevo... y Beto te golpea por la espalda.');hurtP(12);shake();sfx.big();});}
+ else seq.push(()=>{say('kid','...');setLog('😶 Estiras la mano para el relevo. Beto se da la vuelta y camina hacia los vestidores.');});
+ seq.push(()=>{shout('¡BETO SE BAJA DEL RING!');sfx.crowd();vib([80,60,80]);com&&com('revive');});
+ seq.push(()=>{setLog('Los dos gemelos se te echan encima. Nadie llega a ayudarte.');hurtP(10);shake();});
+ seq.push(()=>{hurtP(8);sfx.big();});
+ seq.push(()=>{count123(()=>{P.hp=Math.max(1,Math.round(P.max*.35));C=null;musicStop();P.row++;saveRun();
+  talk([['chucho','¡No lo puedo creer! ¡Beto abandonó a su compañero!'],['nar','El réferi cuenta tres. La gente le avienta vasos a Beto mientras se va por el pasillo... y él no voltea.']],showMap);});});
+ let t=0;seq.forEach((f,i)=>{setTimeout(()=>{try{f();}catch(e){}},W(t));t+=i===seq.length-2?900:1300;});}
+// Variante de la traición según la relación
+function betoTraicion(){const k=RR('kid');P.rel.kid=Math.min(k,0)-2+(k>=1?1:0);
+ const L=[['nar','En el vestidor, Beto se está quitando las vendas. El Licenciado Barrera sale por la puerta de atrás, guardándose un sobre.'],['yo','¿Por qué, Beto?'],
+  ['kid','Me ofrecieron el lugar estelar si te dejaba caer.'],['kid','Llevo años detrás de ti, {n}. Siempre el segundo. Ya me cansé.']];
+ if(k>=1)L.push(['kid','(con la voz rota) Lo siento, carnal. De verdad. Pero tenía que hacerlo.']);else if(k<=-1)L.push(['kid','Y ni creas que me arrepiento.']);
+ L.push(['kid','Y ya no me digas Beto. Desde hoy soy Kid Alacrán.']);
+ return{l:L,who:'kid',q:'Tu amigo de toda la vida te dio la espalda.',o:[
+  ['🤝 "Algún día vas a regresar, Beto"',()=>{P.flags.kidHeel=1;REL('kid',1);return[['nar','Se detiene en la puerta un segundo... y se va sin voltear.']];}],
+  ['😤 "Desde hoy eres mi rival"',()=>{P.flags.kidHeel=1;REL('kid',-1);LH.pf(2);return[['kid','Por fin dices algo inteligente.'],['nar','Conviertes el coraje en furia: +2 en tu próxima lucha.']];}],
+  ['👊 Empujarlo frente a todos',()=>{P.flags.kidHeel=1;REL('kid',-2);LH.f(8);return[['kid','Ahí está. Ahora sí somos enemigos.'],['chuy','¡Sepárense! ¡Esto es un gimnasio, no una cantina!']];}]]};}
+const BETO_ST={
+ lic_contrata:()=>({l:[['nar','Cuando bajan del ring, un señor de traje brilloso los espera junto a la salida, con una sonrisa de oreja a oreja.'],['lic','Licenciado Barrera, promotor. Llevo veinte años en esto y nunca había visto a dos chamacos moverse así.'],['lic','Ese relevo... ¡esa química! Los quiero a los dos en mis carteles. Hoy mismo.'],['kid','¿Los dos? ¿En serio? ¡Carnal, nos van a pagar!'],['lic','Poquito al principio, eh. Pero si llenan, crecemos todos.']],who:'lic',q:'El Licenciado les extiende la mano.',o:[
+  ['🤝 Firmar los dos juntos',()=>{REL('kid',1);REL('lic',1);return[['kid','¡Hasta el estadio, carnal!'],['lic','(guardándose las firmas) Así me gusta. Juntitos.']];}],
+  ['🧐 Preguntar cuánto les va a pagar',()=>{REL('lic',-1);LH.g(10);return[['lic','Qué preguntón... Está bien: diez pesos más para cada uno.'],['kid','(en voz baja) No le busques, carnal. Ya estamos adentro.']];}]]}),
+ beto_segundo:()=>({l:[['nar','El cartel de la kermés ya está pegado en la tienda de la esquina.'],['nar','Tu nombre va en letras grandes, en la lucha estelar. El de Beto, chiquito, en la primera lucha de la tarde.'],['lic','La gente pide al de la máscara del abuelo. Negocios son negocios, Beto.'],['kid','(sonríe) No pasa nada, carnal. A ti te toca brillar.']],who:'kid',q:'Beto sonríe... pero no te mira a los ojos.',o:[
+  ['📣 Pedirle al Licenciado que los ponga juntos',()=>{REL('kid',2);REL('lic',-1);return[['lic','(suspira) Está bien... pero si no venden, me lo pagan ustedes.'],['kid','Gracias, carnal. En serio.']];}],
+  ['😅 "Ya te tocará, Beto"',()=>{REL('kid',-1);return[['kid','Claro... como a ti todo te sale.'],['nar','Lo dice riéndose. Pero se queda callado el resto de la tarde.']];}],
+  ['🍺 Invitarle unas cervezas después',()=>{REL('kid',1);drinkUp(1);LH.hp(-4);return[['kid','Tu abuelo nunca me enseñó esa llave a mí, ¿sabías? Solo a ti.'],['nar','Lo dice como broma. Ninguno de los dos se ríe.']];}]]}),
+ beto_casa:()=>({l:[['nar','Son las once de la noche y Beto toca a tu puerta con una mochila.'],['kid','Mi jefe me corrió de la casa, carnal. Y debemos tres meses de renta. Mi mamá no sabe qué hacer.'],['kid','Necesito ganar más... mucho más.']],who:'kid',q:'Beto está en tu puerta.',o:[
+  ['💵 Prestarle $30',()=>{LH.g(-30);REL('kid',2);return[['kid','Te lo pago, carnal. Te lo juro por el abuelo.']];},()=>P.gold>=30],
+  ['🏠 "Quédate en mi casa"',()=>{REL('kid',2);REL('mama',-1);return[['mama','¿Otra boca más? Ay, mijo... bueno, que se quede.'],['kid','Nunca se me va a olvidar, carnal.']];}],
+  ['😓 "Ahorita no puedo, Beto"',()=>{REL('kid',-2);return[['kid','Ah... ok. Ya me las arreglo.'],['nar','Se va caminando bajo la lluvia.']];}]]}),
+ lic_coche:()=>({l:[['nar','Saliendo del gimnasio ves un coche negro estacionado en la esquina, con los vidrios polarizados.'],['nar','Se abre la puerta y se baja Beto. Desde adentro, el Licenciado Barrera le da una palmada en la espalda.'],['kid','(al verte) ¡Carnal! Nada... me dio un aventón.']],who:'kid',q:'Beto se ve nervioso.',o:[
+  ['🤔 Preguntarle de qué hablaron',()=>{REL('kid',-1);return[['kid','¿Ahora me vas a vigilar? Ni que fueras mi mamá.']];}],
+  ['🙂 No darle importancia',()=>{REL('kid',1);return[['kid','Vamos por unos tacos, yo invito. ¡Hoy sí traigo!'],['nar','Paga con un billete de quinientos. Nunca había traído uno.']];}]]}),
+ traicion_previa:()=>({l:[['lic','¡Muchachos! Tengo algo grande: lucha de parejas en la Arena del barrio. Ustedes contra los Gemelos Infernales.'],['lic','Si ganan, los dos suben al cartel estelar. Les doy mi palabra.'],['kid','(sin verte) Como en el patio, ¿no, carnal?'],['chuy','(en voz baja) Hay algo en ese Licenciado que no me gusta, {n}.']],who:'kid',q:'Mañana luchan juntos otra vez.',o:[
+  ['🤙 "Como en el patio, Beto"',()=>{REL('kid',1);return[['kid','...Sí. Como en el patio.']];}],
+  ['🏋️ Entrenar el relevo toda la tarde',()=>{LH.up(1);return[['nar','Practican el relevo hasta que oscurece. Beto casi no habla.']];}]]}),
+ kid_traicion:()=>betoTraicion(),
+ beto_3am:()=>({l:[['nar','3:12 de la madrugada. Te vibra el celular.'],['nar','"Beto está escribiendo..."'],['nar','"Beto está escribiendo..."'],['nar','El mensaje nunca llega. A la mañana siguiente ves que te escribió algo... y lo borró.']],who:'kid',q:'¿Le escribes?',o:[
+  ['📱 "¿Qué me ibas a decir, Beto?"',()=>{REL('kid',1);return[['kid','(horas después) Nada. Se me fue el dedo.'],['nar','Pero te dejó en visto con el emoji del meñique.']];}],
+  ['🔕 Dejarlo así',()=>{LH.pb(3);return[['nar','Apagas el celular y te pones a entrenar.']];}]]}),
+ beto_patio:()=>({l:[['nar','Pasas por el patio de Doña Lupe camino a casa de tu mamá.'],['nar','Ahí está Beto, sentado solo en la orilla de la lona vieja. Con la máscara en las manos.'],['lupe','(desde la ventana) Viene seguido, ¿sabes? Se sienta ahí y no dice nada.']],who:'kid',q:'Beto no te ha visto.',o:[
+  ['🪑 Sentarte junto a él sin decir nada',()=>{REL('kid',2);return[['nar','Se quedan un rato viendo la lona parchada. Ninguno dice nada. Antes de irse, Beto te da una palmada en el hombro.']];}],
+  ['🚶 Seguir de largo',()=>{return[['nar','Sigues caminando. Cuando volteas, Beto ya no está.']];}],
+  ['📣 "¿Ya te arrepentiste, Alacrán?"',()=>{REL('kid',-2);LH.pf(1);return[['kid','(se pone la máscara) Nunca.']];}]]}),
+ lic_revela:()=>({l:[['nar','La noche antes de la gran lucha, Doña Lupe te da un sobre amarillo que alguien dejó olvidado en su patio.'],['nar','Adentro hay un contrato firmado por el Licenciado Barrera: "Bono por abandonar al compañero en la lucha de parejas. Promoción de la rivalidad: 40% para la empresa".'],['chuy','Ese desgraciado lo planeó todo desde el principio, {n}. Los juntó, los separó... y ahora cobra boletos con su pleito.'],['lic','(al teléfono, sin saber que lo escuchas) Mañana se rompen la cara y yo me hago millonario. Así es este negocio.']],who:'lic',q:'Tienes la prueba en tus manos.',o:[
+  ['📞 Enseñarle el contrato a Beto',()=>{REL('kid',2);REL('lic',-3);return[['kid','(después de un largo silencio) Me usó... nos usó a los dos.'],['kid','Mañana luchamos como en el patio, carnal. Limpio. Y el Licenciado que se busque otro negocio.']];}],
+  ['📰 Mandárselo a la prensa',()=>{REL('lic',-3);LH.f(20);return[['chucho','¡Escándalo! ¡El promotor Barrera arregló la traición del siglo!'],['nar','La Comisión le quita la licencia al Licenciado. Mañana, la arena es solo de ustedes dos.']];}],
+  ['🤐 Guardarlo y concentrarte',()=>{LH.pb(5);return[['nar','Lo guardas en tu maleta. Primero la lucha... después las cuentas.']];}]]})};
+const BETO_END={hi:[['nar','Beto se queda de rodillas, sin máscara, en el centro del ring.'],['kid','Ganaste, carnal. Como siempre.'],['yo','Ganamos, Beto. Los dos niños del patio, en el estadio.'],['nar','Lo levantas y se abrazan. Sesenta mil personas se ponen de pie.']],
+ mid:[['nar','Beto se levanta sin máscara. Se miran un largo rato.'],['nar','No hay abrazo. No hay insultos. Solo un gesto con la cabeza... y se va por el pasillo.']],
+ lo:[['kid','(escupe en la lona) Esto no se acaba aquí, {n}.'],['nar','Se baja del ring entre abucheos, sin voltear a ver a nadie.']]};
 // ---------- Victoria / derrota ----------
 function win(){if(!C||C.over)return;try{P.lastStip=C.stip;wkFightWin(C);}catch(e){}C.over=true;C.busy=true;musicStop();render();LASTDT=C.dmgTaken;(C.surrender?(f=>{shout('¡SE RINDIÓ!');voz([{t:'¡Se rindió! ¡Se rindió!',p:1.55,r:1.2}],true);setTimeout(f,W(1000));}):count123)(()=>{const kind=C.kind,key=C.e.key,m=C.e.m,turns=C.turn;if(C.dmgTaken===0&&kind!=='tut')unlock('intocable');if(C.lastId==='rana')unlock('rana');
  if(kind==='boss'||kind==='temporada'||kind==='nemesis'){C=null;render();UNM={m,t:0};const nm=(key==='veneno'||key==='venenoH')?'Beto, tu amigo de la infancia':pick(UNMASKED);shout('¡SE QUITA LA MÁSCARA!');confetti(40);
   if(!META.unmasked.includes(key)){META.unmasked.push(key);saveMeta();}
-  const ex='Bajo la máscara de '+EN[key].n+' estaba... ¡'+nm+'!';setTimeout(()=>{UNM=null;if(kind==='boss'&&isStory())maskTrophy(key,m,turns,ex,()=>afterWin(kind,key,turns,ex));else afterWin(kind,key,turns,ex);},W(1900));}
+  const ex='Bajo la máscara de '+EN[key].n+' estaba... ¡'+nm+'!';setTimeout(()=>{UNM=null;if(kind==='boss'&&isStory())maskTrophy(key,m,turns,ex,()=>{if(key==='veneno'||key==='venenoH'){const k=RR('kid');return talk(k>=2?BETO_END.hi:k>=0?BETO_END.mid:BETO_END.lo,()=>afterWin(kind,key,turns,ex));}afterWin(kind,key,turns,ex);});else afterWin(kind,key,turns,ex);},W(1900));}
  else afterWin(kind,key,turns);});}
 function afterWin(kind,key,turns,extra){lastFight(true,key,turns,C&&C.e);addXP(kind==='boss'?30:12);C=null;P.won++;META.fw=(META.fw||0)+1;sfx.win();
  if(P.tut)return tutEnd();
@@ -1838,7 +1907,7 @@ let FLS=[];
 function titleOn(on){TON=on;const t=$('#title');if(t&&t.classList)t.classList.toggle('on',on);if(on&&!TRAF)TRAF=requestAnimationFrame(titleDraw);}
 function moreView(){const lvl=Math.min(PASS.length,Math.floor(META.pass.xp/PASSXP));const claim=PASS.slice(0,lvl).filter((_,i)=>!META.pass.claimed.includes(i)).length;
  showPanel('<h1>☰ Más</h1>');[['🏅 Logros',Object.keys(META.ach).length+'/'+Object.keys(ACH).length,achView],['📖 Álbum de máscaras',META.album.length+' máscaras',album],['🏛️ Salón de la Fama',(META.hof||[]).length?'Récord '+META.hof[0].f+'⭐':'Sin récords',hofView],['🎭 Expositor de máscaras',(META.unmasked||[]).length+' máscaras ganadas',()=>vitrinaView(moreView)],['🎶 Mi entrada','Canción, pose y efectos',()=>entradaView(moreView)],['❓ Cómo jugar','Reglas y consejos',howTo],['⚙️ Configuración','Sonido, juego y datos',options]].forEach(([l,sub,f])=>addBtn(l,'blu',f,sub));addBtn('Volver','alt',menu);}
-function aboutView(){showPanel('<h1>ℹ️ Acerca del juego</h1><p><b>Máscara contra Máscara</b>\nVersión 2.12\n\nUn juego de cartas y lucha libre hecho en México 🇲🇽.\n\nMúsica y efectos generados en vivo con el sintetizador del navegador. Arte pixelado original.\n\n¡Gracias por jugar! 🎭</p><p class="small"><a href="privacidad.html" style="color:#ffd23f">Política de privacidad</a></p>');addBtn('Volver','alt',options);}
+function aboutView(){showPanel('<h1>ℹ️ Acerca del juego</h1><p><b>Máscara contra Máscara</b>\nVersión 2.13\n\nUn juego de cartas y lucha libre hecho en México 🇲🇽.\n\nMúsica y efectos generados en vivo con el sintetizador del navegador. Arte pixelado original.\n\n¡Gracias por jugar! 🎭</p><p class="small"><a href="privacidad.html" style="color:#ffd23f">Política de privacidad</a></p>');addBtn('Volver','alt',options);}
 const MUNL={quick:['Gana tu primera lucha',M=>(M.fw||0)>=1],torneo:['Gana tu primera lucha',M=>(M.fw||0)>=1],deck:['Gana tu primera lucha',M=>(M.fw||0)>=1],gym:['Gana tu primera lucha',M=>(M.fw||0)>=1],packs:['Gana 2 luchas',M=>(M.fw||0)>=2],daily:['Gana 3 luchas',M=>(M.fw||0)>=3],};
 function mOk(k){return META.prog>=9||!MUNL[k]||MUNL[k][1](META);}
 function menu(){if(META.prog===undefined){META.prog=((META.stats&&META.stats.runs>0)||(META.total||0)>100)?9:0;META.seenU=Object.keys(MUNL).filter(mOk);saveMeta();}P=null;C=null;UNM=null;if(META.opt.music&&MUSK!=='menu')musicStart('menu');else if(!META.opt.music)musicStop();render();hidePanel();const L=LUCH[META.sel.l];
@@ -1855,7 +1924,7 @@ function menu(){if(META.prog===undefined){META.prog=((META.stats&&META.stats.run
  if(META.tutDone)h+='<button class="bigb alt qk" data-k="quick"><span class="bi">⚡</span><div>LUCHA RÁPIDA<small>Una pelea · 3 minutos</small></div></button>';
  h+='<div class="modes"><button class="md" data-k="torneo"><span>🏆</span>Amistoso y Torneo</button><button class="md" data-k="daily">'+dot(META.daily.date!==todayStr())+'<span>📅</span>Del día</button></div></div>';
  h+='<div class="nav"><button class="nv" data-k="packs">'+dot(META.freePack!==todayStr())+'<span>🎁</span>Sobres</button><button class="nv" data-k="deck"><span>🃏</span>Mazo</button><button class="nv" data-k="mask"><span>🎨</span>Luchador</button><button class="nv" data-k="gym"><span>🏋️</span>Mejoras</button><button class="nv" data-k="more">'+dot(claim)+'<span>☰</span>Más</button></div>';
- h+='<div class="ver">'+SEASON.n+(META.titulo?' · 🏅 '+META.titulo:'')+' · v2.12</div>';
+ h+='<div class="ver">'+SEASON.n+(META.titulo?' · 🏅 '+META.titulo:'')+' · v2.13</div>';
  const tw=$('#tw');tw.innerHTML=h;titleOn(true);if(!window._chant&&typeof AC!=='undefined'&&AC&&AC.state==='running'&&META.opt.music){window._chant=1;[0,280,560,760,960].forEach((t,i)=>setTimeout(()=>{try{sfx.slap();}catch(e){}},t+400));}
  if(tw.querySelectorAll)tw.querySelectorAll('[data-k]').forEach(el=>{const k=el.dataset.k;if(!MUNL[k])return;if(!mOk(k)){el.classList.add('lk');el.insertAdjacentHTML('beforeend','<em class="lkic">🔒</em>');}else if(fresh.includes(k))el.insertAdjacentHTML('beforeend','<em class="nwb">NUEVO</em>');});
  if(fresh.length)setTimeout(()=>toastU(fresh),500);
@@ -2077,6 +2146,8 @@ function wearOv(P_,W,sk,skD,A,B){
  if(W>=6){P_(10,17,12,1,'#ffd23f');P_(8,39,16,1,'#ffd23f');P_(8,56,8,1,'#ffd23f');P_(16,56,8,1,'#ffd23f');P_(9,4,1,12,'#ffd23f');P_(22,4,1,12,'#ffd23f');P_(14,0,4,2,'#ffd23f');}}
 const WEARTXT=['Máscara remendada, tenis de tianguis y un calzón deslavado.','Botas viejas de segunda mano y la máscara cosida por tu mamá.','¡Botas de verdad y colores nuevos! Ya pareces luchador profesional.','Rodilleras de tus colores y una máscara que brilla con los reflectores.','¡Tu primera capa de entrada!','Lentejuelas que brillan con las luces de la tele.','Detalles dorados de campeón. Te ves como leyenda.'];
 function PT(){return(META&&META.look.trunk)||(META?META.mask.b:'#ffd23f');}function LK(){const l=Object.assign({},META&&META.look||{},{style:P?P.l:(META&&META.sel?META.sel.l:'T')});if(P&&!P.mode&&!P.daily&&!P.tut)Object.assign(l,{wear:vTier(),scars:P.scars});return l;}
+EN.gemelos={n:'Gemelo Infernal I',hp:46,ai:'agresivo',m:['#1a1a1a','#e67e22','flame'],mv:[{n:'Doble patada',dmg:5,hits:2},{n:'Cubrirse',block:7},{n:'Lanzazo',dmg:9}],note:'Dos hermanos que pelean como uno solo.'};
+EN.gemelos2={n:'Gemelo Infernal I',hp:64,ai:'agresivo',m:['#1a1a1a','#c0392b','flame'],mv:[{n:'Doble patada',dmg:6,hits:2},{n:'Cubrirse',block:8},{n:'Lanzazo',dmg:11},{n:'Cerrojo',dmg:7,ap:{debil:1}}],note:'Los Gemelos Infernales, ahora en la Arena del barrio.'};
 const ESTY={gallo:'R',charro:'R',tramposo:'R',calavera:'R',veneno:'R',charrooro:'R',panzon:'G',carnicero:'G',bestia:'G',nieve:'G',inmortal:'G'};
 function playerMask(){return META?[META.mask.a,META.mask.b,META.mask.p]:['#3b6fb6','#ffd23f','star'];}
 function drawRing(){tk++;cx.setTransform(2,0,0,2,0,0);cx.imageSmoothingEnabled=false;const vt=vTier(),V=VEN[vt];const rw=$('#ringwrap');if(rw&&rw.style.setProperty&&tk%15===1){const H=rw.clientHeight,Wd=rw.clientWidth,ch=Math.min(H,Wd*.55);if(rw._ch!==ch+'/'+H){rw._ch=ch+'/'+H;rw.style.setProperty('--ch',ch+'px');rw.style.setProperty('--hb',Math.max(0,Math.min(ch+2,H-46))+'px');}}if(rw&&rw.dataset.v!==String(vt)){rw.dataset.v=vt;rw.style.backgroundColor=V.bg;}cx.fillStyle=V.bg;cx.fillRect(0,0,200,110);
