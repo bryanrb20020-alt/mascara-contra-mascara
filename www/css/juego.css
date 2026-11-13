@@ -311,3 +311,7 @@ body.zurdo #bot{flex-direction:row-reverse}
 #tw::before{left:-15%}#tw::after{right:-15%;animation-delay:-3.5s;animation-direction:alternate-reverse}#tw>*{position:relative;z-index:1}
 @keyframes spot{from{transform:rotate(22deg)}to{transform:rotate(-22deg)}}
 .logo .l1,.logo .l3{background-size:100% 100%,200% 100%!important}.logo{filter:drop-shadow(0 0 10px #ff2e8866)}.logo .l2{animation:l2p 2.4s ease-in-out infinite}@keyframes l2p{50%{transform:scale(1.08)}}
+#ringwrap{flex:1 1 auto!important;min-height:calc(min(100vw,520px)*.55 + 50px)!important}
+#hand{flex:none!important;height:var(--hh,196px);min-height:0!important;align-items:center!important}#hand .card{zoom:var(--cz,1)}
+#pb,#eb{top:6px!important;bottom:auto!important}
+#log{flex:none}
