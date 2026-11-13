@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Máscara contra Máscara (versión 1)</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#120a1e;color:#fff;font-family:ui-monospace,Menlo,Consolas,"Courier New",monospace;overflow:hidden;user-select:none;-webkit-user-select:none}
+#app{display:flex;flex-direction:column;height:100%;max-width:520px;margin:0 auto;background:linear-gradient(#1d0f33,#120a1e)}
+#top{display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:#0b0614;border-bottom:3px solid #ff2e88;font-weight:800;font-size:13px;gap:6px}
+#top .hp{color:#ff6b6b}#top .gold{color:#ffd23f}#relics{font-size:14px;letter-spacing:1px;max-width:30%;overflow:hidden;white-space:nowrap}
+#scr{flex:1;display:flex;flex-direction:column;min-height:0}
+#ringwrap{position:relative}
+#ringwrap.shake{animation:sh .28s}
+@keyframes sh{0%,100%{transform:translate(0,0)}20%{transform:translate(-6px,3px)}40%{transform:translate(6px,-3px)}60%{transform:translate(-4px,2px)}80%{transform:translate(4px,-1px)}}
+#ring{display:block;width:100%;image-rendering:pixelated}
+.bar{position:absolute;top:6px;width:44%;font-size:11px;font-weight:800}
+.bar .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:2px 2px 0 #000}
+.hpb{height:10px;background:#3a1d2a;border:2px solid #000;margin-top:2px;position:relative}
+.hpb i{display:block;height:100%;background:#e74c3c;transition:width .25s}
+.hpb span{position:absolute;inset:0;font-size:9px;line-height:7px;text-align:center;text-shadow:1px 1px 0 #000}
+.st{margin-top:3px;min-height:16px;font-size:11px;display:flex;flex-wrap:wrap;gap:3px}
+.st b{background:#000a;border:1px solid #fff4;padding:0 3px}
+#pb{left:6px}#eb{right:6px;text-align:right}#eb .st{justify-content:flex-end}
+#intent{position:absolute;right:14%;top:58px;background:#fff;color:#000;border:3px solid #000;padding:2px 6px;font-weight:900;font-size:14px;box-shadow:2px 2px 0 #000}
+#shout{position:absolute;left:0;right:0;top:34%;text-align:center;font-size:24px;font-weight:900;color:#ffd23f;text-shadow:3px 3px 0 #000,-2px -2px 0 #ff2e88;pointer-events:none;opacity:0;transform:scale(.6);transition:all .15s;z-index:3}
+#shout.on{opacity:1;transform:scale(1)}
+.fl{position:absolute;font-weight:900;font-size:20px;text-shadow:2px 2px 0 #000;pointer-events:none;animation:up .9s forwards;z-index:2}
+@keyframes up{to{transform:translateY(-34px);opacity:0}}
+#meters{display:flex;gap:6px;padding:6px 8px;align-items:center;font-size:12px;font-weight:800}
+#aff{flex:1;height:14px;background:#2a1640;border:2px solid #000;position:relative}
+#aff i{display:block;height:100%;background:linear-gradient(90deg,#ff2e88,#ffd23f);transition:width .25s}
+#aff span{position:absolute;inset:0;text-align:center;font-size:10px;line-height:10px;text-shadow:1px 1px 0 #000}
+#sus{min-width:58px;text-align:right}
+#log{font-size:12px;padding:0 10px;min-height:30px;color:#ffd9ec;line-height:1.3}
+#hand{flex:1;display:flex;gap:6px;overflow-x:auto;padding:6px 8px;align-items:flex-start;-webkit-overflow-scrolling:touch;min-height:150px}
+.card{flex:0 0 108px;height:146px;border:3px solid #000;box-shadow:3px 3px 0 #000;padding:6px;position:relative;color:#111;display:flex;flex-direction:column;cursor:pointer;transition:transform .1s}
+.card:active{transform:translateY(-6px)}
+.card.no{opacity:.45}
+.card .co{position:absolute;top:-8px;left:-8px;width:26px;height:26px;border-radius:50%;background:#ffd23f;border:3px solid #000;font-weight:900;text-align:center;line-height:20px;font-size:14px}
+.card .cn{font-weight:900;font-size:12px;margin:6px 0 2px;line-height:1.1}
+.card .ce{font-size:26px;text-align:center;margin:2px 0}
+.card .ct{font-size:10.5px;line-height:1.25;font-weight:700}
+.card .tg{position:absolute;top:2px;right:4px;font-size:10px}
+.t-atk{background:#ffb3b3}.t-def{background:#b3d4ff}.t-hab{background:#b8f0c0}.t-dirty{background:#d9b3ff}.t-fin{background:linear-gradient(#fff3a3,#ffb347)}
+.card.upg .cn{color:#0a6b2a}
+#bot{display:flex;gap:6px;padding:8px;background:#0b0614;align-items:center;padding-bottom:max(8px,env(safe-area-inset-bottom))}
+#en{font-size:20px;font-weight:900;color:#ffd23f;min-width:58px}
+#piles{font-size:11px;flex:1;color:#cbb}
+.b{font:inherit;font-weight:900;font-size:14px;padding:11px 12px;border:3px solid #000;box-shadow:3px 3px 0 #000;color:#fff;background:#ff2e88;cursor:pointer}
+.b:active{transform:translate(2px,2px);box-shadow:1px 1px 0 #000}.b:disabled{opacity:.4}
+.b.alt{background:#4b3b6b}.b.grn{background:#2e9d46}.b.blu{background:#3b6fb6}.b.gold{background:#d4a017;color:#000}.b.sm{font-size:12px;padding:9px 8px}
+#relevo{display:none;background:#16a085}
+#ov{position:fixed;inset:0;background:#000c;display:none;align-items:center;justify-content:center;padding:12px;z-index:9}
+#ov.on{display:flex}
+.pn{background:#21123a;border:4px solid #ff2e88;box-shadow:6px 6px 0 #000;max-width:440px;width:100%;max-height:92vh;overflow-y:auto;padding:16px}
+.pn h1{margin:0 0 8px;font-size:22px;color:#ffd23f;text-shadow:3px 3px 0 #000}
+.pn h2{font-size:14px;margin:14px 0 6px;color:#ff9ccf}
+.pn p{font-size:13px;line-height:1.5;margin:0 0 10px;white-space:pre-line}
+.pn .b{width:100%;margin-top:8px;text-align:left}
+.cards{display:flex;gap:8px;overflow-x:auto;padding:10px 4px 8px}
+.small{font-size:11px;opacity:.85}
+.mapline{display:flex;gap:4px;justify-content:center;margin:6px 0 12px;font-size:18px}
+.mapline span{opacity:.35}.mapline span.done{opacity:.8}.mapline span.cur{opacity:1;transform:scale(1.3)}
+.opt{display:flex;align-items:center;gap:8px;background:#2f1c50;border:3px solid #000;padding:8px;margin:6px 0;cursor:pointer;font-size:12px}
+.opt.sel{border-color:#ffd23f;background:#4a2a75}.opt.lock{opacity:.6}
+.opt .ic{font-size:24px;min-width:30px;text-align:center}.opt b{font-size:13px}
+.sw{display:inline-block;width:30px;height:30px;border:3px solid #000;margin:3px;cursor:pointer}.sw.sel{outline:3px solid #ffd23f}
+.pill{display:inline-block;background:#000;border:2px solid #ffd23f;color:#ffd23f;padding:2px 8px;font-weight:900;font-size:12px;margin:2px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.alb{background:#2f1c50;border:2px solid #000;text-align:center;padding:6px 2px;font-size:10px}
+.alb .ic{font-size:24px}.alb.no{opacity:.35}
+.passrow{display:grid;grid-template-columns:40px 1fr 1fr;gap:6px;align-items:center;margin:4px 0;font-size:11px}
+.passrow div{background:#2f1c50;border:2px solid #000;padding:6px;min-height:34px}
+.passrow .got{background:#2e9d46}.passrow .prem{background:#3a2a10;color:#c9a;}
+#adov{position:fixed;inset:0;background:#000;display:none;z-index:20;align-items:center;justify-content:center;flex-direction:column;text-align:center;font-weight:900}
+#adov.on{display:flex}
+</style>
+</head>
+<body>
+<div id="app">
+ <div id="top"><span id="tAct">Acto 1</span><span class="hp" id="tHp">❤</span><span class="gold" id="tGold"></span><span id="relics"></span></div>
+ <div id="scr">
+  <div id="ringwrap"><canvas id="ring" width="200" height="104"></canvas>
+   <div class="bar" id="pb"><div class="nm" id="pName">Tú</div><div class="hpb"><i id="pHpI"></i><span id="pHpT"></span></div><div class="st" id="pSt"></div></div>
+   <div class="bar" id="eb"><div class="nm" id="eName"></div><div class="hpb"><i id="eHpI"></i><span id="eHpT"></span></div><div class="st" id="eSt"></div></div>
+   <div id="intent"></div><div id="shout"></div>
+  </div>
+  <div id="meters"><span>📣</span><div id="aff"><i id="affI"></i><span id="affT">Afición 0/10</span></div><span id="sus"></span></div>
+  <div id="log"></div>
+  <div id="hand"></div>
+ </div>
+ <div id="bot"><div id="en"></div><div id="piles"></div><button class="b sm" id="relevo">🤝 Relevo</button><button class="b" id="endT">Terminar ▶</button></div>
+</div>
+<div id="ov"><div class="pn" id="pn"></div></div>
+<div id="adov"><div style="font-size:14px;opacity:.7">ANUNCIO DE PRUEBA</div><div style="font-size:40px;margin:16px">📺</div><div>Aquí iría un anuncio con recompensa (AdMob)</div><div id="adc" style="font-size:48px;color:#ffd23f;margin-top:16px">3</div></div>
+<script>
+"use strict";
+const $=s=>document.querySelector(s);
+let RNG=Math.random;
+const R=(a,b)=>a+RNG()*(b-a),RI=(a,b)=>Math.floor(R(a,b+1)),pick=a=>a[RI(0,a.length-1)],chance=p=>RNG()<p;
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=RI(0,i);[a[i],a[j]]=[a[j],a[i]];}return a;};
+function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+
+// ---------- Cartas ----------
+const CARDS={
+ golpe:{n:'Golpe',e:'👊',c:1,t:'atk',dmg:6,up:{dmg:9}},
+ bloqueo:{n:'Bloqueo',e:'🛡️',c:1,t:'def',block:5,up:{block:8}},
+ hurra:{n:'Hurracarrana',e:'🌀',c:1,t:'atk',dmg:7,aff:2,air:1,up:{dmg:10}},
+ patada:{n:'Patada voladora',e:'🦶',c:2,t:'atk',dmg:12,aff:3,air:1,up:{dmg:16}},
+ plancha:{n:'Plancha desde la tercera',e:'🪂',c:2,t:'atk',dmg:18,self:4,aff:4,air:1,up:{dmg:24}},
+ tope:{n:'Tope suicida',e:'☄️',c:1,t:'atk',dmg:10,self:3,aff:3,air:1,up:{dmg:13}},
+ lazo:{n:'Lazo',e:'💪',c:1,t:'atk',dmg:9,up:{dmg:12}},
+ candado:{n:'Candado',e:'🔒',c:1,t:'atk',dmg:4,ap:{debil:2},llave:1,up:{dmg:6,ap:{debil:3}}},
+ brazo:{n:'Llave al brazo',e:'🦾',c:1,t:'atk',dmg:5,ap:{abierto:2},llave:1,up:{dmg:7,ap:{abierto:3}}},
+ rana:{n:'La Rana',e:'🐸',c:2,t:'atk',dmg:8,sub:1,llave:1,up:{dmg:11}},
+ quebradora:{n:'Quebradora',e:'💥',c:2,t:'atk',dmg:13,ap:{mareado:1},pr:.5,up:{pr:1}},
+ contra:{n:'Contraataque',e:'↩️',c:1,t:'def',block:6,contra:5,up:{block:8,contra:7}},
+ saludo:{n:'Saludo al público',e:'🙌',c:0,t:'hab',aff:3,draw:1,up:{aff:4,draw:2}},
+ aire:{n:'Recuperar aire',e:'😮‍💨',c:1,t:'def',block:4,draw:2,up:{block:7}},
+ grito:{n:'Grito de guerra',e:'🔥',c:1,t:'hab',sf:{furia:2},ex:1,up:{sf:{furia:3}}},
+ tirabuzon:{n:'Tirabuzón',e:'🌪️',c:2,t:'atk',dmg:5,hits:3,aff:3,air:1,up:{dmg:7}},
+ cristo:{n:'Cristo invertido',e:'✝️',c:2,t:'atk',dmg:10,ap:{debil:2,abierto:2},llave:1,up:{dmg:14}},
+ muralla:{n:'Muralla',e:'🧱',c:2,t:'def',block:14,up:{block:19}},
+ corbata:{n:'Corbata',e:'👔',c:1,t:'atk',dmg:6,aff:1,draw:1,up:{dmg:9}},
+ aplastar:{n:'Aplastón',e:'🦍',c:2,t:'atk',dmg:16,ap:{mareado:1},pr:.3,up:{dmg:21}},
+ provoca:{n:'Provocación',e:'😏',c:0,t:'hab',aff:3,ap:{debil:1},up:{aff:4,ap:{debil:2}}},
+ beso:{n:'Beso al público',e:'💋',c:1,t:'hab',aff:4,heal:4,up:{aff:5,heal:7}},
+ esquiva:{n:'Esquivar',e:'💨',c:1,t:'def',block:8,draw:1,up:{block:11}},
+ piquete:{n:'Piquete de ojos',e:'👉',c:0,t:'atk',dmg:4,ap:{debil:2},dirty:1,up:{dmg:6}},
+ silla:{n:'Sillazo',e:'🪑',c:1,t:'atk',dmg:14,dirty:1,ex:1,up:{dmg:20}},
+ bajo:{n:'Golpe bajo',e:'🥊',c:1,t:'atk',dmg:9,ap:{mareado:1},pr:.35,dirty:1,up:{dmg:12}},
+ jalon:{n:'Jalón de máscara',e:'🎭',c:1,t:'hab',ap:{abierto:3,debil:1},dirty:1,up:{ap:{abierto:4,debil:2}}},
+ polvo:{n:'Polvo a los ojos',e:'🌫️',c:1,t:'hab',ap:{mareado:1},pr:1,dirty:1,ex:1,up:{c:0}},
+ mordida:{n:'Mordida',e:'🦷',c:1,t:'atk',dmg:7,heal:3,dirty:1,up:{dmg:9,heal:5}},
+ cadena:{n:'Cadenazo',e:'⛓️',c:2,t:'atk',dmg:22,dirty:2,ex:1,up:{dmg:28}},
+ finT:{n:'Hurracarrana Celestial',e:'🌟',c:0,t:'fin',dmg:28,air:1,ex:1},
+ finR:{n:'Martinete Infernal',e:'😈',c:0,t:'fin',dmg:22,ap:{mareado:1},pr:1,ex:1},
+ finG:{n:'Bomba Atómica',e:'💣',c:0,t:'fin',dmg:34,ex:1},
+ finV:{n:'Huracán Estelar',e:'🦋',c:0,t:'fin',dmg:6,hits:5,air:1,ex:1},
+ finX:{n:'Beso Robado',e:'💘',c:0,t:'fin',dmg:20,heal:10,ap:{mareado:1},pr:1,ex:1},
+ finM:{n:'Mini Tornillo',e:'🔩',c:0,t:'fin',dmg:18,block:15,air:1,ex:1}
+};
+const COMMON=['hurra','patada','plancha','tope','lazo','candado','brazo','rana','quebradora','contra','saludo','aire','grito','tirabuzon','muralla','corbata'];
+const DIRTY=['piquete','silla','bajo','jalon','polvo','mordida','cadena'];
+const STN={debil:'Débil',abierto:'Abierto',mareado:'Mareado',furia:'Furia',contra:'Contra'};
+const STI={debil:'🥴',abierto:'🎯',mareado:'💫',furia:'🔥',contra:'↩️'};
+
+// ---------- Luchadores / mánagers / mejoras ----------
+const LUCH={
+ T:{n:'El Técnico',e:'😇',hp:74,fin:'finT',cost:0,m:['#3b6fb6','#ffd23f','star'],deck:['golpe','golpe','golpe','golpe','bloqueo','bloqueo','bloqueo','bloqueo','hurra','contra','tope'],pool:COMMON.concat(['cristo','cristo']),d:'Equilibrado: llaves aéreas y defensa.'},
+ R:{n:'El Rudo',e:'😈',hp:62,fin:'finR',cost:0,m:['#c0392b','#111','horns'],deck:['golpe','golpe','golpe','golpe','bloqueo','bloqueo','bloqueo','piquete','silla','bajo'],pool:COMMON.filter((_,i)=>i%2===0).concat(DIRTY,DIRTY),d:'Juego sucio: pega más, pero el réferi lo vigila.'},
+ G:{n:'El Gigante',e:'🦍',hp:92,fin:'finG',cost:300,m:['#4e342e','#ffd23f','bands'],deck:['golpe','golpe','golpe','golpe','bloqueo','bloqueo','bloqueo','lazo','muralla','aplastar'],pool:COMMON.concat(['aplastar','aplastar','muralla','lazo']),d:'+2 de daño en cada ataque, pero roba 4 cartas por turno.'},
+ V:{n:'La Voladora',e:'🦋',hp:60,fin:'finV',cost:450,m:['#ff2e88','#fff','bolt'],deck:['golpe','golpe','golpe','bloqueo','bloqueo','bloqueo','hurra','hurra','tope','patada'],pool:COMMON.concat(['hurra','patada','plancha','tope','tirabuzon']),d:'Las llaves aéreas dan +1 de afición extra.'},
+ X:{n:'El Exótico',e:'💋',hp:66,fin:'finX',cost:600,m:['#8e44ad','#ffd23f','heart'],deck:['golpe','golpe','golpe','bloqueo','bloqueo','bloqueo','provoca','provoca','saludo','beso'],pool:COMMON.concat(['provoca','beso','saludo']),d:'Empieza cada lucha con 4 de afición. Se gana al público.'},
+ M:{n:'Mini Estrella',e:'⭐',hp:54,fin:'finM',cost:800,m:['#16a085','#ffd23f','star'],deck:['golpe','golpe','golpe','golpe','bloqueo','bloqueo','bloqueo','esquiva','contra','tope'],pool:COMMON.concat(['esquiva','contra','tope']),d:'20% de esquivar cada golpe del rival.'}
+};
+const RELEVO={T:'12 de daño y +2 afición',R:'14 de daño y Débil 2',G:'18 de daño',V:'4 golpes de 4',X:'+5 afición y te cura 6',M:'10 de daño y 10 de defensa'};
+const MAN={ninguno:{n:'Sin mánager',e:'—',d:'Luchas solo.',cost:0},lic:{n:'La Licenciada',e:'👩‍💼',d:'El réferi te descubre 50% menos.',cost:200},profe:{n:'El Profe',e:'👨‍🏫',d:'+1 carta el primer turno y más cartas mejoradas en recompensas.',cost:250},cuca:{n:'Doña Cuca',e:'👵',d:'Te cura 6 al terminar cada lucha.',cost:250},promotor:{n:'El Promotor',e:'🤑',d:'+40% de dinero ganado.',cost:350}};
+const UPG={hp:{n:'+6 de vida inicial',e:'❤️',cost:[100,220,400]},aff:{n:'+1 de afición inicial',e:'📣',cost:[150,320]},oro:{n:'+$25 al empezar',e:'💰',cost:[80,180]},carta:{n:'Empezar con 1 carta mejorada',e:'⬆️',cost:[160,340]},relevo:{n:'Relevo +50% más fuerte',e:'🤝',cost:[300]}};
+const PATTERNS={star:0,horns:0,bolt:40,crown:60,skull:50,fin:40,spots:40,x:40,bands:40,crest:50,flame:'pase',heart:'pase',diamond:'pase'};
+const PATN={star:'Estrella',horns:'Cuernos',bolt:'Rayo',crown:'Corona',skull:'Calavera',fin:'Aleta',spots:'Manchas',x:'Equis',bands:'Franjas',crest:'Cresta',flame:'Llamas',heart:'Corazón',diamond:'Diamante'};
+const COLORS=['#3b6fb6','#c0392b','#2e9d46','#ffd23f','#111111','#ffffff','#8e44ad','#e67e22','#ff2e88','#16a085','#cfd8dc','#4e342e'];
+
+// ---------- Rivales ----------
+const EN={
+ chiva:{n:'Chiva Loca',hp:34,m:['#f5f5f5','#2e9d46','horns'],mv:[{n:'Cabezazo',dmg:8},{n:'Embestida',dmg:5,hits:2},{n:'Bufido',sf:{furia:2}}]},
+ gallo:{n:'El Gallo Negro',hp:38,m:['#111','#e74c3c','crest'],mv:[{n:'Picotazo',dmg:6,ap:{debil:1}},{n:'Aleteo',block:8},{n:'Espolón',dmg:11}]},
+ momia:{n:'La Momia de Tultepec',hp:44,m:['#d9cfae','#7a6a4a','bands'],mv:[{n:'Abrazo',dmg:7,ap:{abierto:1}},{n:'Vendas',block:10},{n:'Maldición',ap:{debil:2}},{n:'Abrazo',dmg:9}]},
+ charro:{n:'El Charro Negro',hp:40,m:['#222','#ffd23f','star'],mv:[{n:'Espuelazo',dmg:9},{n:'Reata',dmg:4,ap:{abierto:2}},{n:'Grito',sf:{furia:2},block:5}]},
+ ciclon:{n:'Los Hermanos Ciclón',hp:62,m:['#3b6fb6','#fff','bolt'],mv:[{n:'Doble patada',dmg:7,hits:2},{n:'Relevo',block:12,sf:{furia:1}},{n:'Ciclón doble',dmg:15}]},
+ emperador:{n:'El Emperador Dorado',hp:85,boss:1,m:['#ffd23f','#8e44ad','crown'],mv:[{n:'Golpe imperial',dmg:14},{n:'Corona',block:15,sf:{furia:2}},{n:'Decreto',ap:{debil:2,abierto:2}},{n:'Lluvia de oro',dmg:6,hits:3}]},
+ tiburon:{n:'Tiburón Blanco',hp:56,m:['#cfd8dc','#1565c0','fin'],mv:[{n:'Mordida',dmg:12},{n:'Frenesí',dmg:4,hits:4},{n:'Olfatear sangre',sf:{furia:3}}]},
+ calavera:{n:'Calavera Ninja',hp:52,m:['#111','#fff','skull'],mv:[{n:'Estrella',dmg:7,hits:2,ap:{abierto:1}},{n:'Sombra',block:15},{n:'Corte',dmg:14}]},
+ jaguar:{n:'Rey Jaguar',hp:62,m:['#f39c12','#111','spots'],mv:[{n:'Zarpazo',dmg:14},{n:'Rugido',sf:{furia:3},ap:{debil:1}},{n:'Salto',dmg:9,hits:2}]},
+ nahual:{n:'El Nahual',hp:58,m:['#5d4037','#ff7043','bolt'],mv:[{n:'Transformación',block:12,sf:{furia:2}},{n:'Garra',dmg:11,ap:{debil:1}},{n:'Aullido',ap:{abierto:2,debil:1}}]},
+ bestia:{n:'La Bestia del Ring',hp:100,m:['#4e342e','#c0392b','horns'],mv:[{n:'Aplastar',dmg:18},{n:'Rugir',sf:{furia:3},block:10},{n:'Azotón',dmg:9,hits:2,ap:{abierto:1}}]},
+ siniestro:{n:'Dr. Siniestro',hp:135,boss:1,m:['#2c3e50','#2ecc71','x'],mv:[{n:'Inyección',ap:{debil:2,abierto:2}},{n:'Bisturí',dmg:8,hits:3},{n:'Experimento',sf:{furia:3},block:18},{n:'Operación',dmg:22}]},
+ inmortal:{n:'El Inmortal',hp:190,boss:1,m:['#fff','#000','skull'],mv:[{n:'Llamado del más allá',sf:{furia:3},block:20},{n:'Guadaña',dmg:12,hits:2},{n:'Maldición eterna',ap:{debil:3,abierto:3}},{n:'Juicio final',dmg:30},{n:'Almas',dmg:5,hits:5}]},
+ catrina:{n:'La Catrina Letal',hp:72,season:'muertos',m:['#fff','#8e44ad','skull'],mv:[{n:'Abanico',dmg:8,hits:2},{n:'Pan de muerto',block:12,sf:{furia:2}},{n:'Ofrenda',ap:{debil:2,abierto:2}},{n:'Baile final',dmg:17}]},
+ nieve:{n:'El Hombre de Nieve',hp:76,season:'navidad',m:['#fff','#3b6fb6','x'],mv:[{n:'Bola de nieve',dmg:6,hits:3},{n:'Ventisca',ap:{debil:2},block:10},{n:'Avalancha',dmg:18}]}
+};
+const ACTS=[{n:'Arena del Barrio',pool:['chiva','gallo','momia','charro'],elite:'ciclon',boss:'emperador',sc:1},
+ {n:'Arena Nacional del Norte',pool:['tiburon','calavera','jaguar','nahual'],elite:'bestia',boss:'siniestro',sc:1},
+ {n:'Campeonato Mundial',pool:['tiburon','calavera','jaguar','nahual','charro'],elite:'bestia',boss:'inmortal',sc:1.25}];
+const MASKS={
+ oro:{n:'Máscara de Oro',e:'🟡',d:'+8 de vida máxima.'},
+ halcon:{n:'Máscara del Halcón',e:'🦅',d:'Empiezas cada lucha con 3 de afición.'},
+ acero:{n:'Máscara de Acero',e:'⚙️',d:'Empiezas cada lucha con 8 de defensa.'},
+ roja:{n:'Máscara Roja',e:'🔴',d:'Empiezas cada lucha con 1 de furia.'},
+ pueblo:{n:'Máscara del Pueblo',e:'🏘️',d:'Te curas 5 al ganar cada lucha.'},
+ diablo:{n:'Máscara del Diablo',e:'👹',d:'El réferi te descubre la mitad de las veces.'},
+ azul:{n:'Máscara Azul',e:'🔵',d:'Robas 2 cartas extra en el primer turno.'},
+ imperial:{n:'Máscara Imperial',e:'👑',d:'+1 de energía cada turno.',boss:1},
+ siniestra:{n:'Máscara Siniestra',e:'🧪',d:'El rival empieza cada lucha Abierto 2 y Débil 1.',boss:1},
+ cempa:{n:'Máscara de Cempasúchil',e:'🌼',d:'Te curas 2 al inicio de cada turno.',season:'muertos'},
+ esfera:{n:'Máscara Navideña',e:'🎄',d:'+12 de vida máxima y +1 carta el primer turno.',season:'navidad'}
+};
+const SEASON=(()=>{const m=new Date().getMonth();if(m===9||m===10)return{k:'muertos',n:'🌼 Temporada de Muertos',en:'catrina'};if(m===11||m===0)return{k:'navidad',n:'🎄 Temporada Navideña',en:'nieve'};return{k:'regular',n:'🏟️ Temporada Regular',en:null};})();
+const PASS=[{f:['fama',20],p:'Máscara dorada brillante'},{f:['pat','flame'],p:'Entrada con humo'},{f:['fama',30],p:'Lona morada'},{f:['pat','heart'],p:'Grito de victoria'},{f:['fama',40],p:'Capa de campeón'},{f:['fama',50],p:'Música de entrada'},{f:['pat','diamond'],p:'Máscara arcoíris'},{f:['fama',60],p:'Trono de entrada'},{f:['fama',80],p:'Cinturón de oro'},{f:['titulo','Leyenda del Pancracio'],p:'Marco de perfil'}];
+const PASSXP=80;
+const UNMASKED=['Pancho López, contador de Toluca','Don Beto, el de la tiendita','Rigoberto, maestro de secundaria','tu vecino de enfrente','Juan Pérez, taxista','el primo de tu compadre','un dentista de Monterrey','el señor de los tamales'];
+const SHOUTS={air:['¡SE TIRÓ DESDE LA TERCERA!','¡VUELA, VUELA!','¡QUÉ BÁRBARO!','¡DESDE LAS ALTURAS!'],big:['¡TREMENDO CASTIGO!','¡QUÉ GOLPAZO!','¡LO DEJÓ VIENDO ESTRELLAS!'],dirty:['¡EL RÉFERI NO VIO NADA!','¡QUÉ TRAMPOSO!','¡ABUCHEOS EN LA ARENA!'],fin:['¡LA LLAVE MAESTRA!','¡SE CAE LA ARENA!','¡LOCURA TOTAL!']};
+
+// ---------- Meta / guardado ----------
+let META;
+function defMeta(){return{fama:0,total:0,unl:['T','R'],man:['ninguno'],upg:{},album:[],unmasked:[],pats:['star','horns'],mask:{a:'#3b6fb6',b:'#ffd23f',p:'star'},streak:{last:'',n:0},daily:{date:'',best:0,done:false},nemesis:null,pass:{season:SEASON.k,xp:0,claimed:[]},stats:{runs:0,wins:0,bestAct:0},titulo:'',sel:{l:'T',man:'ninguno',partner:'R',hard:false}};}
+function loadMeta(){try{const s=localStorage.getItem('mcm_v1_meta');META=s?Object.assign(defMeta(),JSON.parse(s)):defMeta();}catch(e){META=defMeta();}if(META.pass.season!==SEASON.k)META.pass={season:SEASON.k,xp:0,claimed:[]};}
+function saveMeta(){try{localStorage.setItem('mcm_v1_meta',JSON.stringify(META))}catch(e){}}
+const upl=k=>META.upg[k]||0;
+
+// ---------- Utilidades de cartas ----------
+function def(c){const d=CARDS[c.id];if(!c.up||!d.up)return d;const u={...d,...d.up};if(d.up.ap)u.ap={...d.ap,...d.up.ap};return u;}
+function cardText(c){const d=def(c),t=[];
+ if(d.dmg)t.push('Daño '+d.dmg+(d.hits?' x'+d.hits:''));if(d.block)t.push('Defensa '+d.block);
+ if(d.sub)t.push('Si el rival tiene 40% de vida o menos: daño x3');
+ if(d.ap)t.push((d.pr&&d.pr<1?Math.round(d.pr*100)+'%: ':'')+Object.entries(d.ap).map(([k,v])=>STN[k]+(k==='mareado'?'':' '+v)).join(', '));
+ if(d.sf)t.push('+'+d.sf.furia+' Furia');if(d.contra)t.push('Devuelve '+d.contra+' por golpe');
+ if(d.aff)t.push('+'+d.aff+' Afición');if(d.draw)t.push('Roba '+d.draw);if(d.heal)t.push('Cura '+d.heal);if(d.self)t.push('Te haces '+d.self);
+ if(d.dirty)t.push('<i>Sucio'+(d.dirty>1?' x'+d.dirty:'')+'</i>');if(d.ex)t.push('<i>Se agota</i>');return t.join('. ')+'.';}
+function cardHTML(c,i,disabled){const d=def(c);const cls=d.t==='fin'?'t-fin':d.dirty?'t-dirty':'t-'+d.t;
+ return'<div class="card '+cls+(c.up?' upg':'')+(disabled?' no':'')+'" data-i="'+i+'"><div class="co">'+d.c+'</div><div class="tg">'+(d.air?'🪽':'')+(d.llave?'🔗':'')+'</div><div class="cn">'+d.n+(c.up?'+':'')+'</div><div class="ce">'+d.e+'</div><div class="ct">'+cardText(c)+'</div></div>';}
+let UID=1;const mkc=(id,up)=>({id,up:!!up,uid:UID++});
+
+// ---------- Sonido ----------
+let AC=null;function beep(f,d,ty,v,dl){try{if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();const t=AC.currentTime+(dl||0),o=AC.createOscillator(),g=AC.createGain();o.type=ty||'square';o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(v||.05,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d+.02);}catch(e){}}
+const sfx={hit:()=>beep(110,.12,'sawtooth',.08),big:()=>{beep(70,.25,'sawtooth',.1);beep(140,.12,'square',.05,.05)},block:()=>beep(400,.07,'triangle',.06),card:()=>beep(700,.04,'square',.03),crowd:()=>{for(let i=0;i<8;i++)beep(300+Math.random()*500,.18,'sawtooth',.015,i*.03)},win:()=>[523,659,784,1047].forEach((f,i)=>beep(f,.15,'square',.05,i*.12)),lose:()=>[392,330,262,196].forEach((f,i)=>beep(f,.2,'square',.05,i*.18)),bell:()=>{beep(1200,.5,'sine',.06);beep(1200,.5,'sine',.05,.25)},slap:()=>beep(180,.08,'square',.09),combo:()=>[660,880,1100].forEach((f,i)=>beep(f,.07,'square',.04,i*.05))};
+
+// ---------- Estado de partida ----------
+let P=null,C=null,UNM=null,PENDING=null;
+const has=m=>P&&P.masks.includes(m);
+function newRun(daily){const s=META.sel,L=LUCH[s.l];
+ P={l:s.l,man:s.man,partner:s.partner,hard:!!s.hard,daily:!!daily,hp:L.hp+upl('hp')*6,max:L.hp+upl('hp')*6,gold:30+upl('oro')*25,deck:L.deck.map(id=>mkc(id)),masks:[],act:0,step:0,won:0,fama:0,flags:{},revived:false,beaten:[]};
+ for(let i=0;i<upl('carta');i++){const c=P.deck.find(c=>!c.up&&CARDS[c.id].up&&c.id!=='bloqueo')||P.deck.find(c=>!c.up);if(c)c.up=true;}
+ if(!daily){META.stats.runs++;saveMeta();P.map=genMap();showMap();}}
+function genMap(){const steps=[[{t:'lucha'}]];for(let i=0;i<3;i++){const a=nodeType(),b=nodeType(a);steps.push([{t:a},{t:b}]);}
+ const nem=META.nemesis;if(nem&&nem.act===P.act){steps[RI(1,3)][0]={t:'nemesis'};}
+ if(SEASON.en&&P.act<2&&chance(.6)){const s=steps[RI(1,3)];s[s.length-1]={t:'temporada'};}
+ steps.push([{t:'gym'},{t:'tienda'}]);steps.push([{t:'boss'}]);return steps;}
+function nodeType(not){const w=[['lucha',45],['elite',16],['gym',13],['tienda',12],['evento',14]];let t;do{let r=RI(1,100);for(const[k,v]of w){r-=v;if(r<=0){t=k;break;}}}while(t===not);return t;}
+const NODE={lucha:['🤼','Lucha','Un rival del cartel'],elite:['💀','Lucha estelar','Más difícil · regala una máscara'],gym:['🏋️','Gimnasio','Descansa o entrena una carta'],tienda:['🛒','Tienda','Compra cartas o quita una'],evento:['❓','Evento','Algo pasa tras bambalinas'],boss:['🎭','MÁSCARA CONTRA MÁSCARA','Si pierdes, te quitan la máscara'],nemesis:['😡','¡REVANCHA!','Tu némesis regresa más fuerte · +25 fama'],temporada:['🎉','Lucha de temporada','Rival especial · máscara exclusiva']};
+
+// ---------- Combate ----------
+function startCombat(key,kind,opt){opt=opt||{};const a=ACTS[Math.min(P.act,2)],e=EN[key],L=LUCH[P.l];let sc=opt.sc||a.sc;if(P.hard)sc*=1.25;if(kind==='nemesis')sc*=1.2;
+ const startAff=(has('halcon')?3:0)+(P.l==='X'?4:0)+upl('aff');
+ C={kind,turn:0,pile:shuffle(P.deck.map(c=>({...c}))),hand:[],disc:[],exh:[],energy:3,maxE:3+(has('imperial')?1:0)+(opt.energy||0),pen:0,aff:0,sus:0,played:[],relevoUsed:false,mods:opt.mods||{},
+  p:{block:has('acero')?8:0,st:{furia:(has('roja')?1:0)+(opt.pfuria||0)}},
+  e:{key,n:(kind==='nemesis'?e.n+' (Revancha)':e.n),hp:Math.round(e.hp*sc),max:Math.round(e.hp*sc),block:0,st:{},mv:e.mv,mi:0,m:e.m,dmgB:(sc>1.1?2:0)+(P.hard?2:0)+(kind==='nemesis'?2:0)},anim:{p:0,e:0,pf:0,ef:0,stop:0},busy:false,over:false,ref:P.flags.ref};
+ P.flags.ref=0;C.aff=0;addAff(startAff,true);
+ if(has('siniestra')){C.e.st.abierto=2;C.e.st.debil=1;}
+ if(opt.efuria)C.e.st.furia=opt.efuria;
+ C.e.mi=e.boss?0:RI(0,e.mv.length-1);
+ sfx.bell();hidePanel();setLog((kind==='boss'?'🎭 ¡Máscara contra máscara! ':kind==='nemesis'?'😡 ¡Revancha contra ':'🔔 ¡Arranca la lucha contra ')+e.n+(kind==='boss'?'':'!'));
+ $('#relevo').style.display=P.partner&&P.partner!==P.l?'block':'none';
+ startTurn();}
+function draw(n){for(let i=0;i<n;i++){if(C.hand.length>=10)return;if(!C.pile.length){if(!C.disc.length)return;C.pile=shuffle(C.disc);C.disc=[];}C.hand.push(C.pile.pop());}}
+function startTurn(){if(!C||C.over)return;C.turn++;C.p.block=C.turn===1&&has('acero')?8:0;C.p.st.contra=0;C.played=[];
+ C.energy=Math.max(0,C.maxE-C.pen);C.pen=0;
+ if(has('cempa')&&C.turn>1){P.hp=Math.min(P.max,P.hp+2);}
+ let n=P.l==='G'?4:5;if(C.turn===1){if(has('azul'))n+=2;if(P.man==='profe')n++;if(has('esfera'))n++;}
+ draw(n);C.busy=false;render();}
+function dmgCalc(base,att,def_){let d=base+(att.st.furia||0);if(att.st.debil)d*=.75;if(def_.st.abierto)d*=1.5;return Math.max(0,Math.floor(d));}
+function hurtE(d){const E=C.e;const b=Math.min(E.block,d);E.block-=b;const r=d-b;E.hp-=r;float('e',r>0?'-'+r:'🛡'+b,r>0?'#ff5252':'#8ec5ff');if(r>0){C.anim.ef=8;if(r>=14){sfx.big();shake();C.anim.stop=6;}else sfx.hit();}else sfx.block();return r;}
+function hurtP(d){if(P.l==='M'&&chance(.2)){float('p','¡ESQUIVA!','#7dff8a');sfx.block();return 0;}const b=Math.min(C.p.block,d);C.p.block-=b;const r=d-b;P.hp-=r;float('p',r>0?'-'+r:'🛡'+b,r>0?'#ff5252':'#8ec5ff');if(r>0){C.anim.pf=8;sfx.hit();if(r>=12)shake();}else sfx.block();return r;}
+function addAff(n,silent){if(!n)return;if(C.mods.affx2)n*=2;const before=C.aff;C.aff=Math.min(10,C.aff+n);if(C.aff>=10&&before<10){if(!silent){sfx.crowd();shout(pick(SHOUTS.fin).replace('LA LLAVE MAESTRA','¡LA AFICIÓN ENLOQUECE'));confetti(30);}setLog('📣 ¡LA AFICIÓN ENLOQUECE! Tienes tu llave maestra.');C.hand.push(mkc(LUCH[P.l].fin));}}
+function play(i){if(!C||C.busy||C.over)return;const c=C.hand[i];if(!c)return;const d=def(c);if(d.c>C.energy){float('p','Sin energía','#ffd23f');return;}
+ C.energy-=d.c;C.hand.splice(i,1);sfx.card();C.anim.p=10;
+ const E=C.e,Pp=C.p;let txt=d.e+' '+d.n;
+ if(d.dmg){let base=d.dmg+(P.l==='G'?2:0);if(d.sub&&E.hp<=E.max*.4){base*=3;txt+=' — ¡SE RINDE DEL DOLOR!';}
+  let tot=0;for(let h=0;h<(d.hits||1);h++){tot+=hurtE(dmgCalc(base,{st:Pp.st},E));if(E.hp<=0)break;}
+  if(d.t!=='fin'){if(d.air)shout(pick(SHOUTS.air));else if(tot>=16)shout(pick(SHOUTS.big));}}
+ if(d.block){Pp.block+=d.block;float('p','+'+d.block+'🛡','#8ec5ff');}
+ if(d.ap&&E.hp>0&&(!d.pr||chance(d.pr))){for(const k in d.ap)E.st[k]=(E.st[k]||0)+d.ap[k];}
+ if(d.sf)for(const k in d.sf)Pp.st[k]=(Pp.st[k]||0)+d.sf[k];
+ if(d.contra)Pp.st.contra=(Pp.st.contra||0)+d.contra;
+ if(d.heal){P.hp=Math.min(P.max,P.hp+d.heal);float('p','+'+d.heal,'#7dff8a');}
+ if(d.self){P.hp-=d.self;float('p','-'+d.self,'#ff5252');}
+ if(d.dirty){C.sus+=d.dirty;addAff(1);txt+=' (¡abucheos!)';shout(pick(SHOUTS.dirty));}
+ if(d.t==='fin'){C.aff=0;sfx.crowd();shout(pick(SHOUTS.fin));confetti(25);txt='🔥 '+d.n+'!!!';}
+ if(d.aff)addAff(d.aff+(P.l==='V'&&d.air?1:0));
+ if(d.draw)draw(d.draw);
+ (d.ex||d.t==='fin'?C.exh:C.disc).push(c);
+ C.played.push(d);combos(d);
+ setLog(txt);
+ if(E.hp<=0)return win();if(P.hp<=0)return lose();
+ render();}
+function combos(d){const pl=C.played,air=pl.filter(x=>x.air).length,ll=pl.filter(x=>x.llave).length,atk=pl.filter(x=>x.t==='atk').length;
+ if(d.air&&air===3){sfx.combo();shout('¡COMBO: VUELO EN CADENA!');hurtE(10);addAff(2);setLog('🪽🪽🪽 ¡Vuelo en cadena! +10 de daño y +2 de afición.');}
+ if(d.llave&&ll===2&&C.e.hp>0){sfx.combo();shout('¡COMBO: LLAVE COMBINADA!');C.e.st.debil=(C.e.st.debil||0)+1;C.e.st.abierto=(C.e.st.abierto||0)+2;setLog('🔗🔗 ¡Llave combinada! Rival Débil y Abierto.');}
+ if(d.t==='atk'&&atk===4){sfx.combo();shout('¡COMBO: RÁFAGA!');C.energy++;setLog('👊x4 ¡Ráfaga! +1 de energía.');}}
+function relevo(){if(!C||C.busy||C.relevoUsed||C.over)return;C.relevoUsed=true;const k=P.partner,m=upl('relevo')?1.5:1,E=C.e;sfx.slap();shout('¡RELEVO! ENTRA '+LUCH[k].n.toUpperCase());
+ if(k==='T'){hurtE(dmgCalc(Math.round(12*m),{st:{}},E));addAff(2);}if(k==='R'){hurtE(dmgCalc(Math.round(14*m),{st:{}},E));E.st.debil=(E.st.debil||0)+2;}
+ if(k==='G')hurtE(dmgCalc(Math.round(18*m),{st:{}},E));if(k==='V')for(let i=0;i<4;i++)hurtE(dmgCalc(Math.round(4*m),{st:{}},E));
+ if(k==='X'){addAff(5);P.hp=Math.min(P.max,P.hp+Math.round(6*m));}if(k==='M'){hurtE(dmgCalc(Math.round(10*m),{st:{}},E));C.p.block+=Math.round(10*m);}
+ P.hp=Math.min(P.max,P.hp+8);setLog('🤝 '+LUCH[k].n+' entra al relevo y te da un respiro (+8 de vida).');
+ if(E.hp<=0)return win();render();}
+function endTurn(){if(!C||C.busy||C.over)return;C.busy=true;C.disc.push(...C.hand);C.hand=[];
+ const refMul=(has('diablo')?.5:1)*(P.man==='lic'?.5:1);
+ if(C.sus>0&&!C.ref&&chance(Math.min(.85,.17*C.sus*refMul))){C.aff=Math.max(0,C.aff-5);C.pen=1;C.sus=0;setLog('🟥 ¡EL RÉFERI TE VIO! Pierdes afición y 1 de energía el próximo turno.');shout('¡AMONESTACIÓN!');beep(2000,.3,'sine',.05);}
+ tickSt(C.p.st);render();setTimeout(enemyTurn,650);}
+function tickSt(st){for(const k of['debil','abierto'])if(st[k])st[k]--;}
+function enemyTurn(){if(!C||C.over)return;const E=C.e,mv=E.mv[E.mi];E.block=0;
+ if(E.st.mareado){E.st.mareado=0;setLog('💫 '+E.n+' está mareado y no ataca.');}
+ else{if(mv.block)E.block+=mv.block+(E.dmgB?4:0);if(mv.sf)for(const k in mv.sf)E.st[k]=(E.st[k]||0)+mv.sf[k];if(mv.ap)for(const k in mv.ap)C.p.st[k]=(C.p.st[k]||0)+mv.ap[k];
+  if(mv.dmg){C.anim.e=10;for(let h=0;h<(mv.hits||1);h++){hurtP(dmgCalc(mv.dmg+E.dmgB,E,C.p));if(C.p.st.contra)hurtE(C.p.st.contra);if(P.hp<=0||E.hp<=0)break;}}
+  setLog(E.n+': '+mv.n);}
+ tickSt(E.st);
+ if(E.hp<=0){render();return setTimeout(win,300);}
+ if(P.hp<=0){render();return setTimeout(lose,450);}
+ nextIntent();render();setTimeout(startTurn,550);}
+function nextIntent(){const E=C.e,ek=EN[E.key];if(ek.boss)E.mi=(E.mi+1)%E.mv.length;else{let n;do n=RI(0,E.mv.length-1);while(n===E.mi&&E.mv.length>1&&chance(.7));E.mi=n;}}
+function intentText(){const E=C.e,mv=E.mv[E.mi];if(E.st.mareado)return'💫 Mareado';const p=[];if(mv.dmg)p.push('⚔️'+dmgCalc(mv.dmg+E.dmgB,E,C.p)+(mv.hits?'x'+mv.hits:''));if(mv.block)p.push('🛡️');if(mv.sf)p.push('🔥');if(mv.ap)p.push('🌀');return p.join(' ');}
+
+// ---------- Victoria / derrota ----------
+function win(){if(!C||C.over)return;C.over=true;C.busy=true;render();count123(()=>{const kind=C.kind,key=C.e.key,m=C.e.m,turns=C.turn;
+ if(kind==='boss'||kind==='temporada'||kind==='nemesis'){C=null;render();UNM={m,t:0};const nm=pick(UNMASKED);shout('¡SE QUITA LA MÁSCARA!');confetti(40);
+  if(!META.unmasked.includes(key)){META.unmasked.push(key);saveMeta();}
+  setTimeout(()=>{UNM=null;afterWin(kind,key,turns,'Bajo la máscara de '+EN[key].n+' estaba... ¡'+nm+'!');},1700);}
+ else afterWin(kind,key,turns);});}
+function afterWin(kind,key,turns,extra){C=null;P.won++;sfx.win();
+ if(P.daily)return dailyEnd(true,turns);
+ if(has('pueblo'))P.hp=Math.min(P.max,P.hp+5);if(P.man==='cuca')P.hp=Math.min(P.max,P.hp+6);
+ let g=kind==='boss'?RI(70,90):kind==='elite'||kind==='temporada'||kind==='nemesis'?RI(35,45):RI(14,22);if(P.man==='promotor')g=Math.round(g*1.4);P.gold+=g;
+ let f=kind==='boss'?30:kind==='elite'?12:kind==='nemesis'?25:kind==='temporada'?15:5;if(P.hard)f*=2;P.fama+=f;
+ if(kind==='nemesis'){META.nemesis=null;saveMeta();}
+ let h='<h1>'+(kind==='boss'?'🎭 ¡GANASTE LA MÁSCARA!':kind==='nemesis'?'😤 ¡VENGANZA CUMPLIDA!':'🏆 ¡1, 2, 3!')+'</h1><p>'+(extra?extra+'\n\n':'')+'+$'+g+' · +'+f+' ⭐ fama</p>';
+ const after=()=>{if(kind==='boss'){P.act++;P.step=0;if(P.act>=ACTS.length)return endRun(true);P.hp=Math.min(P.max,P.hp+Math.round(P.max*.3));P.map=genMap();}else P.step++;showMap();};
+ const cardStep=()=>rewardCards(kind,after);
+ if(['elite','boss','temporada'].includes(kind)){let pool;
+  if(kind==='temporada')pool=Object.keys(MASKS).filter(k=>MASKS[k].season===SEASON.k&&!has(k));
+  else pool=Object.keys(MASKS).filter(k=>!has(k)&&!MASKS[k].season&&(kind==='boss'?MASKS[k].boss||chance(.4):!MASKS[k].boss));
+  const opts=shuffle(pool).slice(0,kind==='boss'?2:1);
+  if(opts.length){h+='<h2>Elige una máscara</h2>';showPanel(h);opts.forEach(k=>addBtn(MASKS[k].e+' '+MASKS[k].n+' — '+MASKS[k].d,'gold',()=>{gainMask(k);cardStep();}));return;}}
+ showPanel(h);addBtn('Continuar','',cardStep);}
+function gainMask(k){P.masks.push(k);if(k==='oro'){P.max+=8;P.hp+=8;}if(k==='esfera'){P.max+=12;P.hp+=12;}if(!META.album.includes(k)){META.album.push(k);saveMeta();}}
+function rewardCards(kind,after){const pool=LUCH[P.l].pool;const opts=[];while(opts.length<3){const id=pick(pool);if(!opts.includes(id))opts.push(id);}
+ const upP=(kind!=='lucha'?.35:0)+(P.man==='profe'?.25:0);const cs=opts.map(id=>mkc(id,chance(upP)));
+ showPanel('<h1>Nueva llave</h1><p>Elige una carta para tu mazo:</p><div class="cards" id="rc">'+cs.map((c,i)=>cardHTML(c,i)).join('')+'</div>');
+ document.querySelectorAll('#rc .card').forEach(el=>el.onclick=()=>{P.deck.push(cs[+el.dataset.i]);sfx.card();after();});addBtn('Saltar','alt',after);}
+function lose(){if(!C||C.over)return;C.over=true;C.busy=true;sfx.lose();const key=C.e.key,kind=C.kind;
+ if(!P.revived&&!P.daily){PENDING=C;showPanel('<h1>😵 ¡Contra la lona!</h1><p>El réferi empieza a contar... 1... 2...</p>');
+  addBtn('📺 Ver anuncio y revivir con 50% de vida','gold',()=>ad(()=>{P.revived=true;C=PENDING;PENDING=null;C.over=false;P.hp=Math.round(P.max*.5);hidePanel();shout('¡SE LEVANTA! ¡NO SE RINDE!');sfx.crowd();C.busy=false;startTurn();}));
+  addBtn('Aceptar la derrota','alt',()=>{PENDING=null;finishLose(key,kind);});return;}
+ finishLose(key,kind);}
+function finishLose(key,kind){const t=C?C.turn:0;C=null;if(P.daily)return dailyEnd(false,t);
+ if(kind!=='boss'&&!EN[key].season){META.nemesis={key,n:EN[key].n,act:Math.min(P.act,2)};saveMeta();}
+ endRun(false);}
+function endRun(victory){const f0=P.fama+(victory?100:0)+P.act*20;P.fama=f0;META.stats.bestAct=Math.max(META.stats.bestAct,victory?4:P.act+1);if(victory)META.stats.wins++;
+ const fin=(mult)=>{const tot=Math.round(f0*mult);META.fama+=tot;META.total+=tot;META.pass.xp+=tot;saveMeta();return tot;};
+ const title=victory?'🏆 ¡CAMPEÓN MUNDIAL!':'😵 ¡TE QUITARON LA MÁSCARA!';
+ const body=(victory?'Derrotaste a El Inmortal. Eres leyenda del pancracio.':'Caíste en '+ACTS[Math.min(P.act,2)].n+'.'+(META.nemesis?'\n😡 '+META.nemesis.n+' ahora es tu némesis. Te buscará en tu próxima temporada.':''))+'\n\nLuchas ganadas: '+P.won+'\nMáscaras: '+(P.masks.map(m=>MASKS[m].e).join(' ')||'ninguna');
+ showPanel('<h1>'+title+'</h1><p>'+body+'</p><h2>⭐ Fama ganada: '+f0+'</h2>');
+ const done=(m)=>{const tot=fin(m);showPanel('<h1>'+title+'</h1><p>'+body+'</p><h2>⭐ +'+tot+' fama (total: '+META.fama+')</h2>');addBtn('📸 Compartir resultado','blu',()=>share(victory));addBtn('Volver al menú','',menu);};
+ addBtn('📺 Ver anuncio y duplicar fama (+'+f0+')','gold',()=>ad(()=>done(2)));addBtn('Cobrar '+f0+' de fama','',()=>done(1));}
+
+// ---------- Lucha del día ----------
+const DMODS=[{n:'El rival empieza con 3 de furia',o:{efuria:3}},{n:'¡Afición doble! Toda la afición vale x2',o:{mods:{affx2:1}}},{n:'+1 de energía, pero empiezas con 15 menos de vida',o:{energy:1},hp:-15},{n:'El rival tiene +50% de vida, tú empiezas con 2 de furia',o:{sc:1.5,pfuria:2}}];
+function daily(){const d=todayStr();const seed=d.split('-').join('')|0;RNG=mulberry(seed);
+ const key=pick(['tiburon','calavera','jaguar','nahual','bestia','charro']),mod=pick(DMODS),extra=[];const L=LUCH[META.sel.l];for(let i=0;i<4;i++)extra.push(pick(L.pool));const upi=RI(0,3);RNG=Math.random;
+ const done=META.daily.date===d;
+ showPanel('<h1>📅 Lucha del día</h1><p>'+d+'\nRival: <b>'+EN[key].n+'</b>\nRegla: '+mod.n+'\nTu luchador: '+L.e+' '+L.n+' + 4 cartas extra del día\n\nPuntos = vida restante x10 + rapidez.\n🏅 Tu mejor de hoy: '+(done?META.daily.best:'—')+(done?'':'\n🎁 Primera victoria del día: +15 fama')+'\n\n<span class="small">En la versión de tienda habría ranking mundial.</span></p>');
+ addBtn('¡A la lucha!','gold',()=>{newRun(true);extra.forEach((id,i)=>P.deck.push(mkc(id,i===upi)));if(mod.hp)P.hp+=mod.hp;P.dkey=key;startCombat(key,'daily',{...mod.o,sc:(mod.o.sc||1)*1.1});});
+ addBtn('Volver','alt',menu);}
+function dailyEnd(won,turns){const d=todayStr();const score=won?Math.max(0,P.hp)*10+Math.max(0,25-turns)*15:0;const first=won&&!(META.daily.date===d&&META.daily.won);
+ if(META.daily.date!==d)META.daily={date:d,best:0,won:false};if(score>META.daily.best)META.daily.best=score;if(won)META.daily.won=true;if(first){META.fama+=15;META.total+=15;META.pass.xp+=15;}saveMeta();
+ showPanel('<h1>'+(won?'🏆 ¡Ganaste la del día!':'😵 Perdiste la del día')+'</h1><p>Puntos: '+score+'\n🏅 Mejor de hoy: '+META.daily.best+(first?'\n⭐ +15 fama':'')+'\n\nMañana hay un nuevo reto.</p>');addBtn('Volver al menú','',menu);}
+
+// ---------- Mapa y nodos ----------
+function showMap(){C=null;render();const a=ACTS[P.act],steps=P.map;
+ let h='<h1>'+a.n+'</h1><p class="small">Acto '+(P.act+1)+' de 3 · '+LUCH[P.l].e+' '+LUCH[P.l].n+(P.hard?' · 💇 Apuesta de cabellera':'')+'\n❤ '+P.hp+'/'+P.max+' · $'+P.gold+' · ⭐ '+P.fama+' fama en esta temporada</p><div class="mapline">'+steps.map((s,i)=>'<span class="'+(i<P.step?'done':i===P.step?'cur':'')+'">'+(i<P.step?'✔':s.length>1?'🔀':NODE[s[0].t][0])+'</span>').join('')+'</div><h2>¿A dónde vas?</h2>';
+ showPanel(h);for(const n of steps[P.step]){const N=NODE[n.t];let sub=N[2];if(n.t==='nemesis')sub=META.nemesis.n+' te ganó la última vez. +25 fama';if(n.t==='temporada')sub=EN[SEASON.en].n+' · máscara exclusiva de '+SEASON.n;addBtn(N[0]+' '+N[1],n.t==='boss'?'gold':n.t==='nemesis'?'':'blu',()=>enterNode(n.t),sub);}
+ addBtn('📜 Ver mi mazo ('+P.deck.length+')','alt',()=>deckView(showMap));addBtn('🏳️ Rendirse','alt',()=>{showPanel('<h1>¿Rendirte?</h1><p>Terminas la temporada y cobras la fama que llevas.</p>');addBtn('Sí, rendirme','',()=>endRun(false));addBtn('No','alt',showMap);});}
+function enterNode(t){const a=ACTS[P.act];
+ if(t==='lucha')startCombat(pick(a.pool),'lucha');if(t==='elite')startCombat(a.elite,'elite');
+ if(t==='nemesis'){showPanel('<h1>😡 ¡REVANCHA!</h1><p>'+META.nemesis.n+' toma el micrófono: "¿Otra vez tú? Te voy a volver a mandar a la lona."</p>');addBtn('¡Esta vez no!','',()=>startCombat(META.nemesis.key,'nemesis'));}
+ if(t==='temporada')startCombat(SEASON.en,'temporada');
+ if(t==='boss'){showPanel('<h1>🎭 MÁSCARA CONTRA MÁSCARA</h1><p>'+EN[a.boss].n+' te espera en el centro del ring.\nLa arena está llena. Si pierdes, te quitan la máscara frente a todos.</p>');addBtn('¡A la lucha!','gold',()=>startCombat(a.boss,'boss'));}
+ if(t==='gym')gym();if(t==='tienda')shop();if(t==='evento')event();}
+function next(){P.step++;showMap();}
+function gym(){const heal=Math.round(P.max*.3);showPanel('<h1>🏋️ Gimnasio</h1><p>❤ '+P.hp+'/'+P.max+'</p>');
+ addBtn('😴 Descansar: +'+heal+' de vida','grn',()=>{P.hp=Math.min(P.max,P.hp+heal);next();});
+ addBtn('💪 Entrenar: mejora una carta','blu',()=>pickCard('Elige una carta para mejorar',c=>!c.up&&CARDS[c.id].up,c=>{c.up=true;next();},gym));}
+function pickCard(title,filter,fn,back){const list=P.deck.filter(filter);showPanel('<h1>'+title+'</h1><div class="cards" id="pc">'+list.map((c,i)=>cardHTML(c,i)).join('')+'</div>');
+ document.querySelectorAll('#pc .card').forEach(el=>el.onclick=()=>fn(list[+el.dataset.i]));addBtn('Volver','alt',back);}
+function deckView(back){const s=P.deck.slice().sort((a,b)=>a.id<b.id?-1:1);showPanel('<h1>Tu mazo</h1><div class="cards" style="flex-wrap:wrap;justify-content:center">'+s.map(c=>cardHTML(c,0)).join('')+'</div>'+(P.masks.length?'<h2>Máscaras</h2>'+P.masks.map(m=>'<p>'+MASKS[m].e+' <b>'+MASKS[m].n+'</b>: '+MASKS[m].d+'</p>').join(''):'')+'<h2>Combos</h2><p>🪽x3 en un turno: Vuelo en cadena (+10 daño, +2 afición)\n🔗x2 en un turno: Llave combinada (Débil + Abierto)\n👊x4 ataques en un turno: Ráfaga (+1 energía)</p>');addBtn('Volver','alt',back);}
+function shop(){if(!P.shop){P.shop=shuffle(LUCH[P.l].pool.slice()).filter((v,i,a)=>a.indexOf(v)===i).slice(0,3).map(id=>({c:mkc(id,chance(.25)),p:RI(40,70)}));P.shopRm=false;}
+ showPanel('<h1>🛒 Tienda de Don Toño</h1><p>"Pásele, campeón. Todo original... casi." · Tienes $'+P.gold+'</p><div class="cards" id="sc">'+P.shop.map((s,i)=>s.sold?'':'<div>'+cardHTML(s.c,i,P.gold<s.p)+'<p style="text-align:center;margin:4px 0">$'+s.p+'</p></div>').join('')+'</div>');
+ document.querySelectorAll('#sc .card').forEach(el=>el.onclick=()=>{const s=P.shop[+el.dataset.i];if(P.gold<s.p)return;P.gold-=s.p;s.sold=1;P.deck.push(s.c);sfx.card();shop();});
+ if(!P.shopRm)addBtn('🗑 Quitar una carta del mazo ($50)','',()=>{if(P.gold<50)return;pickCard('¿Cuál quitas?',()=>true,c=>{P.gold-=50;P.deck.splice(P.deck.indexOf(c),1);P.shopRm=true;shop();},shop);});
+ addBtn('🩹 Vendaje: +15 de vida ($30)','grn',()=>{if(P.gold<30)return;P.gold-=30;P.hp=Math.min(P.max,P.hp+15);shop();});
+ addBtn('Salir','alt',()=>{P.shop=null;next();});}
+const EVENTS=[
+ ()=>['📺 Comercial de refrescos','Un promotor quiere que salgas en un comercial: "¡Chispa-Cola, la bebida de los campeones!"',[['Aceptar (+$40)',()=>{P.gold+=40;return'Te pagan $40. Tu abuela te ve en la tele y llora de orgullo.';}],['Pedir el doble (50%)',()=>chance(.5)?(P.gold+=90,'¡Aceptaron! +$90.'):'Se ofendió y contrató a otro. Nada.']]],
+ ()=>['👴 El viejo maestro','Un luchador retirado entrena solo en un rincón. "Ven, chamaco. Te enseño algo."',[['Entrenar con él (-8 vida, mejora 2 cartas)',()=>{P.hp=Math.max(1,P.hp-8);const l=shuffle(P.deck.filter(c=>!c.up&&CARDS[c.id].up)).slice(0,2);l.forEach(c=>c.up=true);return'Te dejó molido... pero aprendiste: '+(l.map(c=>CARDS[c.id].n).join(' y ')||'nada nuevo')+'.';}],['Escuchar sus historias (+5 vida máx.)',()=>{P.max+=5;P.hp+=5;return'Te cuenta de las luchas del 74. Te sientes más fuerte.';}]]],
+ ()=>['🌮 La taquería de enfrente','Huele a pastor recién salido del trompo.',[['Cenar como campeón ($15, +18 vida)',()=>{if(P.gold<15)return'No te alcanza. Te conformas con el olor.';P.gold-=15;P.hp=Math.min(P.max,P.hp+18);return'¡Qué bárbaro! +18 de vida.';}],['Seguir de largo',()=>'Te vas con hambre.']]],
+ ()=>['🎲 Apuesta clandestina','En el estacionamiento apuestan a la estelar. "¿Le entras con $30?"',[['Apostar $30',()=>{if(P.gold<30)return'No traes ni para el camión.';P.gold-=30;return chance(.5)?(P.gold+=80,'¡Ganaste! +$80.'):'Perdiste. El de la gorra se ríe.';}],['No, gracias',()=>'Mejor no.']]],
+ ()=>['🧢 El réferi corrupto','El réferi de mañana te guiña: "Por $25 no veo nada durante tu próxima lucha."',[['Pagarle $25',()=>{if(P.gold<25)return'No traes dinero.';P.gold-=25;P.flags.ref=1;return'Trato hecho. En tu próxima lucha, el réferi no te descubre.';}],['Ignorarlo',()=>'Te alejas.']]],
+ ()=>['🎭 Un niño fan','Un niño con una máscara de cartón te pide un autógrafo. Es tu máscara... mal dibujada, pero con amor.',[['Firmarle y regalarle tus guantes',()=>{P.hp=Math.min(P.max,P.hp+10);P.fama+=5;return'Su sonrisa vale oro. +10 de vida y +5 fama.';}],['Darle una carta de tu mazo',()=>{const c=pick(P.deck);P.deck.splice(P.deck.indexOf(c),1);P.gold+=20;return'Le regalas '+CARDS[c.id].n+'. Su papá insiste en darte $20.';}]]],
+ ()=>['🎤 Entrevista en la tele','"¿Qué le dices a tu próximo rival?"',[['Retarlo (+10 fama, rival +furia)',()=>{P.fama+=10;return'¡La arena enloquece con tu reto! +10 fama.';}],['Ser humilde (+6 vida)',()=>{P.hp=Math.min(P.max,P.hp+6);return'"Que gane el mejor." La afición te aplaude.';}]]]
+];
+function event(){const[t,txt,opts]=pick(EVENTS)();showPanel('<h1>'+t+'</h1><p>'+txt+'</p>');opts.forEach(([l,f])=>addBtn(l,'blu',()=>{const r=f();showPanel('<h1>'+t+'</h1><p>'+r+'</p>');addBtn('Continuar','',next);}));}
+
+// ---------- Menú y metajuego ----------
+function checkStreak(){const d=todayStr(),s=META.streak;if(s.last===d)return null;const y=new Date();y.setDate(y.getDate()-1);const ys=y.getFullYear()+'-'+String(y.getMonth()+1).padStart(2,'0')+'-'+String(y.getDate()).padStart(2,'0');
+ s.n=s.last===ys?s.n+1:1;s.last=d;const r=5*Math.min(s.n,7);META.fama+=r;META.total+=r;META.pass.xp+=r;saveMeta();return r;}
+function menu(){P=null;C=null;UNM=null;render();const L=LUCH[META.sel.l];
+ const lvl=Math.min(PASS.length,Math.floor(META.pass.xp/PASSXP));const claim=PASS.slice(0,lvl).filter((_,i)=>!META.pass.claimed.includes(i)).length;
+ showPanel('<h1>🎭 MÁSCARA CONTRA MÁSCARA</h1><p class="small">'+SEASON.n+(META.titulo?' · 🏅 '+META.titulo:'')+'</p><p><span class="pill">⭐ '+META.fama+' fama</span><span class="pill">🔥 Racha: '+META.streak.n+' días</span><span class="pill">🏆 '+META.stats.wins+' campeonatos</span>'+(META.nemesis?'<span class="pill">😡 Némesis: '+META.nemesis.n+'</span>':'')+'</p>');
+ addBtn('▶ NUEVA TEMPORADA','gold',setup,L.e+' '+L.n+' · '+MAN[META.sel.man].n);
+ addBtn('📅 Lucha del día','blu',daily,META.daily.date===todayStr()?'Mejor de hoy: '+META.daily.best:'¡Nuevo reto disponible!');
+ addBtn('🏋️ Gimnasio permanente','blu',meta_gym,'Mejoras para todas tus temporadas');
+ addBtn('🎨 Diseña tu máscara','blu',maskEditor,'Colores y diseños · tienda de diseños');
+ addBtn('🎟️ Pase de temporada'+(claim?' ('+claim+' por cobrar)':''),'blu',passView,'Nivel '+lvl+'/'+PASS.length);
+ addBtn('📖 Álbum de máscaras','blu',album,META.album.length+' máscaras · '+META.unmasked.length+' rivales desenmascarados');
+ addBtn('❓ Cómo jugar','alt',howTo);}
+function howTo(){showPanel('<h1>❓ Cómo jugar</h1><p>🃏 Toca una carta para usarla. Cuesta ⚡ energía (3 por turno).\n👁 El letrero blanco dice qué hará el rival en su turno.\n🛡 La defensa se acaba cada turno.\n📣 Llena la afición a 10 y te llega tu LLAVE MAESTRA.\n😈 Las cartas sucias son fuertes, pero el réferi puede verte.\n🤝 Relevo: una vez por lucha, entra tu compañero.\n\nCOMBOS (en el mismo turno):\n🪽🪽🪽 3 aéreas: Vuelo en cadena\n🔗🔗 2 llaves: Llave combinada\n👊x4 4 ataques: Ráfaga (+1 energía)\n\n🎭 Cada arena termina en Máscara contra Máscara. Si pierdes, se acaba la temporada... pero ganas fama para desbloquear luchadores, mánagers y mejoras.\n😡 Si alguien te gana, se vuelve tu némesis y te busca después.</p>');addBtn('Volver','alt',menu);}
+function setup(){const s=META.sel;let h='<h1>Nueva temporada</h1><p class="small">⭐ '+META.fama+' fama disponible</p><h2>Luchador</h2>';
+ for(const k in LUCH){const L=LUCH[k],own=META.unl.includes(k);h+='<div class="opt '+(s.l===k?'sel ':'')+(own?'':'lock')+'" data-a="l" data-k="'+k+'"><div class="ic">'+L.e+'</div><div><b>'+L.n+'</b> · ❤'+L.hp+(own?'':' · 🔒 '+L.cost+'⭐')+'<br>'+L.d+'</div></div>';}
+ h+='<h2>Mánager</h2>';for(const k in MAN){const M=MAN[k],own=META.man.includes(k);h+='<div class="opt '+(s.man===k?'sel ':'')+(own?'':'lock')+'" data-a="man" data-k="'+k+'"><div class="ic">'+M.e+'</div><div><b>'+M.n+'</b>'+(own?'':' · 🔒 '+M.cost+'⭐')+'<br>'+M.d+'</div></div>';}
+ h+='<h2>Compañero de relevo</h2>';for(const k of META.unl){if(k===s.l)continue;h+='<div class="opt '+(s.partner===k?'sel':'')+'" data-a="partner" data-k="'+k+'"><div class="ic">'+LUCH[k].e+'</div><div><b>'+LUCH[k].n+'</b><br>Relevo: '+RELEVO[k]+'</div></div>';}
+ h+='<h2>Modo</h2><div class="opt '+(s.hard?'sel':'')+'" data-a="hard" data-k="1"><div class="ic">💇</div><div><b>Apuesta de cabellera</b> '+(s.hard?'✅':'')+'<br>Rivales +25% de vida y +2 de daño. Fama x2.</div></div>';
+ showPanel(h);
+ document.querySelectorAll('#pn .opt').forEach(el=>el.onclick=()=>{const a=el.dataset.a,k=el.dataset.k;sfx.card();
+  if(a==='l'){if(!META.unl.includes(k)){if(META.fama<LUCH[k].cost){flashMsg('Te falta fama');return;}META.fama-=LUCH[k].cost;META.unl.push(k);sfx.win();}s.l=k;if(s.partner===k)s.partner=META.unl.find(x=>x!==k);}
+  if(a==='man'){if(!META.man.includes(k)){if(META.fama<MAN[k].cost){flashMsg('Te falta fama');return;}META.fama-=MAN[k].cost;META.man.push(k);sfx.win();}s.man=k;}
+  if(a==='partner')s.partner=k;if(a==='hard')s.hard=!s.hard;saveMeta();setup();});
+ if(!s.partner||s.partner===s.l)s.partner=META.unl.find(x=>x!==s.l);
+ addBtn('🔔 ¡A LA ARENA!','gold',()=>newRun(false));addBtn('Volver','alt',menu);}
+function flashMsg(t){const s=$('#pn h1');if(s){const o=s.textContent;s.textContent='⚠ '+t;setTimeout(()=>{s.textContent=o;},900);}}
+function meta_gym(){let h='<h1>🏋️ Gimnasio permanente</h1><p>⭐ '+META.fama+' fama · Estas mejoras duran para siempre.</p>';showPanel(h);
+ for(const k in UPG){const U=UPG[k],l=upl(k),max=U.cost.length;addBtn(U.e+' '+U.n+' · Nivel '+l+'/'+max,l>=max?'alt':'blu',()=>{if(l>=max)return;const c=U.cost[l];if(META.fama<c){flashMsg('Te falta fama');return;}META.fama-=c;META.upg[k]=l+1;saveMeta();sfx.win();meta_gym();},l>=max?'Máximo':'Cuesta '+U.cost[l]+'⭐');}
+ addBtn('Volver','alt',menu);}
+function maskEditor(){const m=META.mask;let h='<h1>🎨 Tu máscara</h1><canvas id="mprev" width="32" height="40" style="width:128px;height:160px;image-rendering:pixelated;display:block;margin:0 auto 8px;background:#2f1c50;border:3px solid #000"></canvas><h2>Color principal</h2>'+COLORS.map(c=>'<span class="sw '+(m.a===c?'sel':'')+'" data-a="a" data-c="'+c+'" style="background:'+c+'"></span>').join('')+'<h2>Color secundario</h2>'+COLORS.map(c=>'<span class="sw '+(m.b===c?'sel':'')+'" data-a="b" data-c="'+c+'" style="background:'+c+'"></span>').join('')+'<h2>Diseño</h2>';
+ for(const p in PATTERNS){const own=META.pats.includes(p),cost=PATTERNS[p];h+='<div class="opt '+(m.p===p?'sel ':'')+(own?'':'lock')+'" data-p="'+p+'"><div><b>'+PATN[p]+'</b>'+(own?'':typeof cost==='number'?' · 🔒 '+cost+'⭐':' · 🎟️ del pase de temporada')+'</div></div>';}
+ h+='<p class="small">En la versión de tienda, los diseños también se podrían comprar con dinero real.</p>';showPanel(h);
+ const pc=$('#mprev').getContext('2d');pc.imageSmoothingEnabled=false;luchador(pc,8,6,[m.a,m.b,m.p],false,'#d9a066',m.b,false);
+ document.querySelectorAll('#pn .sw').forEach(el=>el.onclick=()=>{m[el.dataset.a]=el.dataset.c;saveMeta();maskEditor();});
+ document.querySelectorAll('#pn .opt').forEach(el=>el.onclick=()=>{const p=el.dataset.p;if(!META.pats.includes(p)){const c=PATTERNS[p];if(typeof c!=='number'){flashMsg('Se gana en el pase');return;}if(META.fama<c){flashMsg('Te falta fama');return;}META.fama-=c;META.pats.push(p);sfx.win();}m.p=p;saveMeta();maskEditor();});
+ addBtn('Listo','',menu);}
+function passView(){const lvl=Math.min(PASS.length,Math.floor(META.pass.xp/PASSXP));let h='<h1>🎟️ Pase de temporada</h1><p>'+SEASON.n+'\nXP: '+META.pass.xp+' · Nivel '+lvl+'/'+PASS.length+' (cada '+PASSXP+' de fama ganada = 1 nivel)</p><div class="passrow"><b>Nv</b><b>Gratis</b><b>💎 Premium</b></div>';
+ PASS.forEach((r,i)=>{const got=META.pass.claimed.includes(i),av=i<lvl;const f=r.f;const ft=f[0]==='fama'?'⭐ '+f[1]+' fama':f[0]==='pat'?'🎨 Diseño '+PATN[f[1]]:'🏅 Título: '+f[1];
+  h+='<div class="passrow"><div>'+(i+1)+'</div><div class="'+(got?'got':'')+'" data-i="'+i+'">'+ft+(got?' ✔':av?' 👉 COBRAR':' 🔒')+'</div><div class="prem">🔒 '+r.p+'</div></div>';});
+ h+='<p class="small">El carril premium sería de pago en la versión de tienda (solo cosméticos, sin ventajas).</p>';showPanel(h);
+ document.querySelectorAll('.passrow div[data-i]').forEach(el=>el.onclick=()=>{const i=+el.dataset.i;if(i>=lvl||META.pass.claimed.includes(i))return;const f=PASS[i].f;if(f[0]==='fama'){META.fama+=f[1];}if(f[0]==='pat'&&!META.pats.includes(f[1]))META.pats.push(f[1]);if(f[0]==='titulo')META.titulo=f[1];META.pass.claimed.push(i);saveMeta();sfx.win();passView();});
+ addBtn('Volver','alt',menu);}
+function album(){let h='<h1>📖 Álbum</h1><h2>Máscaras ganadas ('+META.album.length+'/'+Object.keys(MASKS).length+')</h2><div class="grid">';
+ for(const k in MASKS){const own=META.album.includes(k);h+='<div class="alb '+(own?'':'no')+'"><div class="ic">'+(own?MASKS[k].e:'❔')+'</div>'+(own?MASKS[k].n.replace('Máscara ',''):(MASKS[k].season?'De temporada':'???'))+'</div>';}
+ h+='</div><h2>Rivales desenmascarados</h2><div class="grid">';for(const k of['emperador','siniestro','inmortal','catrina','nieve']){const own=META.unmasked.includes(k);h+='<div class="alb '+(own?'':'no')+'"><div class="ic">'+(own?'😶':'🎭')+'</div>'+(own?EN[k].n:'???')+'</div>';}
+ h+='</div><h2>Estadísticas</h2><p>Temporadas jugadas: '+META.stats.runs+'\nCampeonatos: '+META.stats.wins+'\nMejor llegada: '+(META.stats.bestAct>=4?'¡Campeón!':'Acto '+META.stats.bestAct)+'\nFama total ganada: '+META.total+'</p>';showPanel(h);addBtn('Volver','alt',menu);}
+
+// ---------- Compartir ----------
+function share(victory){const c=document.createElement('canvas');c.width=360;c.height=480;const x=c.getContext('2d');x.imageSmoothingEnabled=false;
+ const g=x.createLinearGradient(0,0,0,480);g.addColorStop(0,'#3a1466');g.addColorStop(1,'#120a1e');x.fillStyle=g;x.fillRect(0,0,360,480);
+ x.fillStyle='#ff2e88';x.fillRect(0,0,360,8);x.fillRect(0,472,360,8);
+ x.fillStyle='#ffd23f';x.font='bold 22px monospace';x.textAlign='center';x.fillText('MÁSCARA CONTRA MÁSCARA',180,42);
+ x.save();x.scale(8,8);luchador(x,14.5,7,[META.mask.a,META.mask.b,META.mask.p],false,'#d9a066',META.mask.b,victory);x.restore();
+ x.fillStyle='#fff';x.font='bold 20px monospace';x.fillText(victory?'🏆 ¡CAMPEÓN MUNDIAL!':'Llegué a: '+ACTS[Math.min(P.act,2)].n,180,345);
+ x.font='16px monospace';x.fillText(LUCH[P.l].n+(P.hard?' · Cabellera':''),180,375);x.fillText('Luchas ganadas: '+P.won+'  ·  Fama: '+P.fama,180,402);
+ x.fillText('Máscaras: '+(P.masks.map(m=>MASKS[m].e).join(' ')||'—'),180,429);x.fillStyle='#ff9ccf';x.font='bold 14px monospace';x.fillText('¿Me superas?',180,458);
+ const url=c.toDataURL('image/png');const txt='🎭 '+(victory?'¡Fui CAMPEÓN MUNDIAL':'Llegué a '+ACTS[Math.min(P.act,2)].n)+' en Máscara contra Máscara con '+LUCH[P.l].n+'. '+P.won+' luchas ganadas. ¿Me superas?';
+ showPanel('<h1>📸 Tu resultado</h1><img src="'+url+'" style="width:100%;border:3px solid #000"><p class="small">Mantén presionada la imagen para guardarla y compartirla.</p>');
+ addBtn('📋 Copiar texto para compartir','blu',async()=>{try{await navigator.clipboard.writeText(txt);flashMsg('¡Copiado!');}catch(e){flashMsg('No se pudo copiar');}});addBtn('Volver al menú','',menu);}
+
+// ---------- Efectos ----------
+let shoutT=0;function shout(t){const s=$('#shout');s.textContent=t;s.classList.add('on');clearTimeout(shoutT);shoutT=setTimeout(()=>s.classList.remove('on'),900);}
+function shake(){const w=$('#ringwrap');w.classList.remove('shake');void w.offsetWidth;w.classList.add('shake');}
+const PARTS=[];function confetti(n){for(let i=0;i<n;i++)PARTS.push({x:R(20,180),y:R(-10,10),vx:R(-.6,.6),vy:R(.4,1.4),c:pick(['#ff2e88','#ffd23f','#3b6fb6','#2ecc71','#fff']),l:R(60,110)});}
+function count123(cb){let i=0;const n=['1...','2...','¡¡3!!'];const step=()=>{if(i<3){shout(n[i]);sfx.slap();if(i===2){sfx.bell();confetti(20);}i++;setTimeout(step,480);}else setTimeout(cb,350);};step();}
+function ad(cb){const o=$('#adov');o.classList.add('on');let n=3;$('#adc').textContent=n;const t=setInterval(()=>{n--;$('#adc').textContent=n;if(n<=0){clearInterval(t);o.classList.remove('on');cb();}},1000);}
+
+// ---------- UI ----------
+function showPanel(h){$('#pn').innerHTML=h;$('#ov').classList.add('on');$('#pn').scrollTop=0;}
+function hidePanel(){$('#ov').classList.remove('on');}
+function addBtn(l,c,f,sub){const b=document.createElement('button');b.className='b '+(c||'');b.innerHTML=l+(sub?'<div class="small">'+sub+'</div>':'');b.onclick=()=>{sfx.card();f();};$('#pn').appendChild(b);}
+function setLog(t){$('#log').innerHTML=t;}
+function float(who,t,col){const w=$('#ringwrap');const e=document.createElement('div');e.className='fl';e.textContent=t;e.style.color=col;e.style.left=(who==='p'?16+R(0,12):60+R(0,12))+'%';e.style.top='46%';w.appendChild(e);setTimeout(()=>e.remove(),900);}
+function stHTML(st,block){let h='';if(block)h+='<b>🛡'+block+'</b>';for(const k in st)if(st[k])h+='<b>'+STI[k]+(k==='mareado'?'':st[k])+'</b>';return h;}
+function render(){
+ const inC=!!C;
+ if(!P){$('#tAct').textContent='🎭 MCM';$('#tHp').textContent='';$('#tGold').textContent=META?'⭐'+META.fama:'';$('#relics').textContent='';}
+ else{$('#tAct').textContent=P.daily?'📅 Del día':'Acto '+(P.act+1)+' · '+(P.step+1)+'/6';$('#tHp').textContent='❤ '+Math.max(0,P.hp)+'/'+P.max;$('#tGold').textContent='$'+P.gold;$('#relics').textContent=P.masks.map(m=>MASKS[m].e).join('');}
+ $('#endT').disabled=!inC||C.busy;$('#relevo').disabled=!inC||C.busy||C.relevoUsed;if(!inC)$('#relevo').style.display='none';
+ if(P){$('#pName').textContent=LUCH[P.l].e+' '+LUCH[P.l].n;$('#pHpI').style.width=Math.max(0,P.hp/P.max*100)+'%';$('#pHpT').textContent=Math.max(0,P.hp)+'/'+P.max;}
+ if(!inC){$('#hand').innerHTML='';$('#eName').textContent='';$('#eHpI').style.width='0';$('#eHpT').textContent='';$('#intent').style.display='none';$('#pSt').innerHTML='';$('#eSt').innerHTML='';$('#en').textContent='';$('#piles').textContent='';$('#affI').style.width='0';$('#affT').textContent='Afición';$('#sus').textContent='';if(!P){$('#pName').textContent='';$('#pHpI').style.width='0';$('#pHpT').textContent='';}return;}
+ const E=C.e;$('#eName').textContent=E.n;$('#eHpI').style.width=Math.max(0,E.hp/E.max*100)+'%';$('#eHpT').textContent=Math.max(0,E.hp)+'/'+E.max;
+ $('#intent').style.display=C.over?'none':'block';$('#intent').textContent=intentText();
+ $('#pSt').innerHTML=stHTML(C.p.st,C.p.block);$('#eSt').innerHTML=stHTML(E.st,E.block);
+ $('#affI').style.width=C.aff*10+'%';$('#affT').textContent='Afición '+C.aff+'/10';
+ $('#sus').textContent=P.l==='R'||C.sus?'👁 Réferi '+'▮'.repeat(Math.min(5,C.sus))+'▯'.repeat(Math.max(0,5-C.sus)):'';
+ $('#en').textContent='⚡'+C.energy+'/'+C.maxE;$('#piles').textContent='Mazo '+C.pile.length+' · Desc. '+C.disc.length;
+ $('#hand').innerHTML=C.hand.map((c,i)=>cardHTML(c,i,def(c).c>C.energy||C.busy)).join('');
+ document.querySelectorAll('#hand .card').forEach(el=>el.onclick=()=>play(+el.dataset.i));}
+
+// ---------- Ring ----------
+const cv=$('#ring'),cx=cv.getContext('2d');cx.imageSmoothingEnabled=false;
+function luchador(ctx,x,y,m,flip,skin,trunk,fr){const P_=(a,b,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(flip?x+(16-a-w):x+a,y+b,w,h);};const[A,B,pat]=m;
+ P_(4,24,3,6,skin);P_(9,24,3,6,skin);P_(3,29,4,3,B);P_(9,29,4,3,B);P_(3,20,10,5,trunk);
+ P_(3,10,10,10,skin);P_(5,13,2,1,'rgba(0,0,0,.2)');P_(9,13,2,1,'rgba(0,0,0,.2)');
+ const lift=fr?-3:0;P_(0,10+lift,3,8,skin);P_(13,10,3,8,skin);P_(0,17+lift,3,2,A);P_(13,17,3,2,A);
+ P_(4,1,8,9,A);P_(5,0,6,1,A);
+ if(pat==='bolt'){P_(7,1,2,2,B);P_(6,3,2,2,B);P_(7,5,2,1,B);}if(pat==='star'){P_(7,1,2,3,B);P_(6,2,4,1,B);}
+ if(pat==='crown'){P_(4,0,1,2,B);P_(7,-1,2,2,B);P_(11,0,1,2,B);}if(pat==='horns'){P_(3,-1,1,3,B);P_(12,-1,1,3,B);}
+ if(pat==='crest'){P_(6,-2,4,2,B);P_(7,-3,2,1,B);}if(pat==='bands'){P_(4,3,8,1,B);P_(4,7,8,1,B);}
+ if(pat==='skull'){P_(5,7,6,1,B);P_(6,8,1,1,B);P_(9,8,1,1,B);}if(pat==='spots'){P_(5,2,1,1,B);P_(10,3,1,1,B);P_(6,8,1,1,B);}
+ if(pat==='fin'){P_(7,-2,3,3,B);}if(pat==='x'){P_(5,2,1,1,B);P_(10,2,1,1,B);P_(7,4,2,1,B);}
+ if(pat==='flame'){P_(5,6,1,3,B);P_(10,6,1,3,B);P_(6,8,4,1,B);P_(7,-1,2,1,B);}
+ if(pat==='heart'){P_(6,1,1,1,B);P_(9,1,1,1,B);P_(6,2,4,1,B);P_(7,3,2,1,B);}
+ if(pat==='diamond'){P_(7,0,2,1,B);P_(6,1,4,1,B);P_(7,2,2,1,B);P_(4,7,1,1,B);P_(11,7,1,1,B);}
+ if(pat==='hair'){P_(4,0,8,2,B);P_(4,2,1,2,B);P_(11,2,1,2,B);}
+ if(pat==='hair'){P_(5,4,2,1,'#fff');P_(9,4,2,1,'#fff');P_(6,4,1,1,'#222');P_(10,4,1,1,'#222');P_(7,8,2,1,'#8a3a3a');}
+ else{P_(5,4,2,2,B);P_(9,4,2,2,B);P_(6,5,1,1,'#fff');P_(10,5,1,1,'#fff');P_(7,8,2,1,'#5a2020');}}
+const CROWD=[];for(let i=0;i<120;i++)CROWD.push([Math.floor(Math.random()*200),2+Math.floor(Math.random()*34),['#ff2e88','#ffd23f','#3b6fb6','#fff','#2ecc71','#e67e22'][i%6]]);
+let tk=0;
+function playerMask(){return P&&P.l===META.sel.l?[META.mask.a,META.mask.b,META.mask.p]:P?LUCH[P.l].m:[META.mask.a,META.mask.b,META.mask.p];}
+function drawRing(){tk++;cx.fillStyle='#1d0f33';cx.fillRect(0,0,200,104);
+ const hype=C?C.aff:2;for(const[x,y,c]of CROWD){cx.fillStyle=c;cx.globalAlpha=.55;const j=(Math.floor(tk/(hype>7?4:8)+x)%3===0&&hype>3)?(hype>7?2:1):0;cx.fillRect(x,y-j,2,2);}cx.globalAlpha=1;
+ cx.fillStyle='#ffffff10';for(let i=0;i<4;i++){cx.beginPath();cx.moveTo(30+i*50,0);cx.lineTo(10+i*55,40);cx.lineTo(25+i*55,40);cx.fill();}
+ cx.fillStyle=SEASON.k==='muertos'?'#e8b04a':'#d0cfe0';cx.fillRect(10,72,180,22);cx.fillStyle='#b7b5cc';cx.fillRect(10,90,180,4);cx.fillStyle='#2b2140';cx.fillRect(10,94,180,10);
+ cx.fillStyle='#ccc';cx.fillRect(10,40,4,54);cx.fillRect(186,40,4,54);['#e74c3c','#fff','#3b6fb6'].forEach((c,i)=>{cx.fillStyle=c;cx.fillRect(10,48+i*7,180,1);});
+ const pm=playerMask(),sk='#d9a066';
+ if(C){const a=C.anim;const frozen=a.stop>0;const px=46+(a.p>0?6:0)-(a.pf>0?(a.pf%2?2:-2):0),ex=136-(a.e>0?6:0)+(a.ef>0?(a.ef%2?2:-2):0);
+  if(!(a.pf>0&&a.pf%2))luchador(cx,px,40,pm,false,sk,pm[1],a.p>0);else luchador(cx,px,40,['#fff','#fff','star'],false,'#fff','#fff',false);
+  if(C.over&&C.e.hp<=0){cx.save();cx.translate(ex+16,88);cx.rotate(Math.PI/2);luchador(cx,-16,-16,C.e.m,true,'#c68a55',C.e.m[1],false);cx.restore();cx.fillStyle='#111';cx.fillRect(100,52,6,16);cx.fillStyle='#fff';cx.fillRect(100,52,2,16);cx.fillRect(104,52,2,16);}
+  else if(!(a.ef>0&&a.ef%2))luchador(cx,ex,40,C.e.m,true,'#c68a55',C.e.m[1],a.e>0);else luchador(cx,ex,40,['#fff','#fff','star'],true,'#fff','#fff',false);
+  if(frozen)a.stop--;else for(const k of['p','e','pf','ef'])if(a[k]>0)a[k]--;}
+ else if(UNM){UNM.t++;luchador(cx,46,40,pm,false,sk,pm[1],true);const off=Math.min(30,UNM.t*.6);
+  luchador(cx,136,40,['#c68a55','#3a2a1a','hair'],true,'#c68a55',UNM.m[1],false);
+  cx.fillStyle=UNM.m[0];cx.fillRect(140-off*.2,40-off,8,9);cx.fillStyle=UNM.m[1];cx.fillRect(141-off*.2,43-off,2,2);cx.fillRect(145-off*.2,43-off,2,2);}
+ else if(P){luchador(cx,92,40,pm,false,sk,pm[1],Math.floor(tk/30)%2);}
+ else if(META){luchador(cx,92,40,[META.mask.a,META.mask.b,META.mask.p],false,sk,META.mask.b,Math.floor(tk/30)%2);}
+ for(let i=PARTS.length-1;i>=0;i--){const p=PARTS[i];p.x+=p.vx;p.y+=p.vy;p.l--;cx.fillStyle=p.c;cx.fillRect(Math.round(p.x),Math.round(p.y),2,2);if(p.l<=0||p.y>104)PARTS.splice(i,1);}
+ requestAnimationFrame(drawRing);}
+$('#endT').onclick=endTurn;$('#relevo').onclick=relevo;
+
+// ---------- Inicio ----------
+loadMeta();drawRing();
+const st=checkStreak();menu();
+if(st){const msg=document.createElement('p');msg.innerHTML='🔥 <b>Racha de '+META.streak.n+' día'+(META.streak.n>1?'s':'')+'</b>: +'+st+' fama por volver hoy.';msg.style.cssText='background:#2e9d46;padding:6px;border:2px solid #000';$('#pn').insertBefore(msg,$('#pn').children[1]);}
+</script>
+</body>
+</html>
