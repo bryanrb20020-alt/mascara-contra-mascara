@@ -300,6 +300,11 @@ body.zurdo #bot{flex-direction:row-reverse}
 .lvbar{display:flex;align-items:center;gap:8px;margin:2px 14px 4px;font-size:12px;color:#fff}.lvb{flex:1;position:relative;height:16px;background:#2a1640;border:2px solid #000;box-shadow:0 2px 0 #000}.lvb i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#2ecc71,#ffd23f)}.lvb span{position:relative;display:block;text-align:center;font-size:9px;line-height:12px;color:#fff;text-shadow:1px 1px 0 #000}
 .goals{display:flex;flex-direction:column;gap:4px;margin:0 14px 6px}.goal{display:block;width:100%;text-align:left;font:inherit;font-size:11px;color:#e8dcff;background:#1c0f30;border:2px solid #000;padding:5px 8px;border-radius:8px}.goal b{color:#ffd23f}button.goal{cursor:pointer}.goal.hot{background:#3a1466;border-color:#ffd23f;animation:bob 1.6s infinite}
 .bigb.qk{padding:7px 14px;font-size:16px}
+.troph{position:relative;overflow:hidden;padding:4px 0}.trays{position:absolute;left:50%;top:120px;width:640px;height:640px;margin:-320px 0 0 -320px;background:repeating-conic-gradient(#ffd23f33 0 10deg,transparent 10deg 20deg);animation:tspin 12s linear infinite;pointer-events:none}
+.tlab{position:relative;text-align:center;font-weight:900;color:#ff2e88;letter-spacing:2px;font-size:12px}.tmask{position:relative;display:flex;justify-content:center;margin:6px 0}.tmask .pi{width:120px;height:120px;filter:drop-shadow(0 0 14px #ffd23f) drop-shadow(4px 4px 0 #000);animation:tdrop .9s cubic-bezier(.2,1.6,.4,1) both}
+.tttl{position:relative;text-align:center;font-size:22px;color:#ffd23f;text-shadow:3px 3px 0 #b0182a,-1px -1px 0 #000;animation:tpop .6s .5s both}.tstat{position:relative;display:flex;justify-content:center;gap:14px;font-size:12px;margin:4px 0}
+.tcol{position:relative;display:flex;justify-content:center;gap:5px;margin:8px 0 2px}.tslot{width:38px;height:38px;border:3px solid #000;background:#1c0f30;display:flex;align-items:center;justify-content:center;color:#5a4a7a;font-weight:900}.tslot.on{background:#3a1466}.tslot .pi{width:28px;height:28px}.tslot.nw{border-color:#ffd23f;animation:bob 1s infinite}
+@keyframes tspin{to{transform:rotate(360deg)}}@keyframes tdrop{from{transform:translateY(-160px) rotate(-30deg) scale(.3);opacity:0}}@keyframes tpop{from{transform:scale(.3);opacity:0}}
 </style>
 </head>
 <body>
@@ -925,7 +930,7 @@ function coinToss(){if(!C||C.tut)return startTurn();C.busy=true;render();const r
    addBtn('🔔 ¡A luchar!','gold',()=>{hidePanel();if(!C)return;if(win){C.busy=false;startTurn();}else{C.firstE=1;C.busy=true;C.p.block=C.startBlock;C.startBlock=0;shout('¡EMPIEZA '+rn.toUpperCase()+'!');setTimeout(()=>{if(C&&!C.over)enemyTurn();},W(700));}});};
   setTimeout(tick,W(60));};
  addBtn('🦅 Águila','gold',()=>go('a'));addBtn('☀️ Sol','blu',()=>go('s'));}
-function startCombat(key,kind,opt){opt=opt||{};const a=ACTS[Math.min(P.act,2)],e=EN[key],L=LUCH[P.l];let sc=opt.sc||a.sc;sc*=1+(P.cab>=1?.1:0)+(P.cab>=6?.1:0)+(P.cab>=10?.1:0);if(kind==='nemesis')sc*=1.2;if(!P.mode&&!P.daily&&!P.tut){sc*=[.85,1.03,1.2][DIF()];if(P.ch!==undefined&&kind!=='boss')sc*=1+.07*(P.ch-[0,0,0,3,3,5,5][P.ch]);if(P.ch!==undefined&&kind==='boss')sc*=[1,1.05,1.1,1.14,1.15,1.05,1.3][P.ch]||1;}
+function startCombat(key,kind,opt){opt=opt||{};const a=ACTS[Math.min(P.act,2)],e=EN[key],L=LUCH[P.l];let sc=opt.sc||a.sc;sc*=1+(P.cab>=1?.1:0)+(P.cab>=6?.1:0)+(P.cab>=10?.1:0);if(kind==='nemesis')sc*=1.2;if(!P.mode&&!P.daily&&!P.tut){sc*=[.85,1.03,1.2][DIF()];if(P.ch!==undefined&&kind!=='boss')sc*=1+.07*(P.ch-[0,0,0,3,3,5,5][P.ch]);if(P.ch!==undefined&&kind==='boss')sc*=[1.2,1.3,1.32,1.32,1.3,1.2,1.5][P.ch]||1;}
  const F=P.flags;const startAff=(has('halcon')?3:0)+(P.l==='X'?4:0)+upl('aff')+(F.banda?2:0)+(F.aff3&&P.act===2?3:0)+(F.entAff||0)+(kind==='boss'&&P.rel&&P.rel.mama>=2?2:0)+(kind==='boss'&&P.flags.abMem?3:0)+(META.belt==='torneo'?1:0);F.entAff=0;
  C={kind,turn:0,pile:shuffle(P.deck.map(c=>({...c}))),hand:[],disc:[],exh:[],energy:3,maxE:3+(has('imperial')?1:0)+(opt.energy||0),pen:0,aff:0,sus:0,played:[],relevoUsed:false,mods:opt.mods||{},
   startBlock:(has('acero')?8:0)+(F.perro?4:0)+(META.belt==='retos'?3:0),sub:0,vote:null,turnDmg:0,drawPen:0,stealNext:false,mv:null,llaveTurn:false,surrender:false,
@@ -938,7 +943,7 @@ function startCombat(key,kind,opt){opt=opt||{};const a=ACTS[Math.min(P.act,2)],e
  if(P.inj&&P.inj.length){P.inj.forEach(()=>C.pile.push(mkc('lesion')));shuffle(C.pile);}
  if(F.chisme){C.e.st.debil=(C.e.st.debil||0)+2;F.chisme=0;}
  if(F.reto){C.e.st.furia=(C.e.st.furia||0)+2;F.reto=0;}
- if(!P.mode&&!P.daily&&!P.tut){if(DIF()===2)C.e.dmgB+=2;if(DIF()===0)C.e.dmgB-=2;if(kind==='boss'&&P.ch!==undefined)C.e.dmgB+=[0,0,1,1,1,1,3][P.ch]||0;}
+ if(!P.mode&&!P.daily&&!P.tut){if(DIF()===2)C.e.dmgB+=2;if(DIF()===0)C.e.dmgB-=2;if(kind==='boss'&&P.ch!==undefined)C.e.dmgB+=[1,1,2,2,2,2,4][P.ch]||0;if(kind==='boss'&&P.ch!==undefined){C.e.st.furia=(C.e.st.furia||0)+(P.ch>=2?1:0);C.e.block=[4,6,8,10,12,12,15][P.ch]||0;}}
  C.stip=opt.stip||null;applyStip();if(isStory()&&P.home)C.startBlock+=P.home*2;if(META.ent&&META.opt.ent&&!C.tut){C.introT=90;setTimeout(entFx,W(600));}
  if(isStory()&&kind==='boss'&&P.ch===6&&P.flags.estudio){C.e.hp=C.e.max=Math.round(C.e.max*.9);}
  if(kind==='boss'&&P.rel&&!P.mode&&P.ch!==6){if(P.rel.kid>=2){C.p.st.furia=(C.p.st.furia||0)+2;setTimeout(()=>say('kid','¡Estoy en tu esquina, {n}! ¡Dale con todo! (+2 furia)'),1200);}else if(P.rel.kid<=-2){C.e.st.furia=(C.e.st.furia||0)+2;setTimeout(()=>say('kid','Le di unos consejitos a tu rival, {n}. Suerte. (+2 furia al rival)'),1200);}else if(P.rel.mama>=2)setTimeout(()=>say('mama','¡Aquí estamos con la manta, mijo! (+2 afición)'),1200);}
@@ -1348,7 +1353,7 @@ function showRoad(){C=null;if(P.ch===undefined){P.ch=[0,3,5][Math.min(P.act,2)];
  h+='</div>';showPanel(h);
  if(cur.t==='fork'){cur.o.forEach(k=>{const F=FORKS[k];addBtn(F[0]+' '+F[1],'gold',()=>doFork(k),k==='nemesis'&&META.nemesis?META.nemesis.n+' quiere revancha':F[2]);});}
  else{const[ic,n]=stepInfo(cur,P.row);addBtn('▶ '+(cur.t==='story'?'Continuar la historia':n),'gold',()=>doStep(cur));}
- addBtn('📱 Celular','alt',celularView);addBtn('📜 Mi mazo ('+P.deck.length+')','alt',()=>deckView(showMap));if(P.chSnap&&P.row>0)addBtn('🔁 Reiniciar capítulo','alt',()=>{showPanel('<h1>¿Reiniciar el capítulo '+(P.ch+1)+'?</h1><p>Vuelves al inicio del capítulo con lo que tenías al llegar. Se pierde lo que hayas ganado en este capítulo.</p>');addBtn('Sí, reiniciar','gold',chRestart);addBtn('No','alt',showMap);});addBtn('🏳️ Rendirse','alt',()=>{showPanel('<h1>¿Rendirte?</h1><p>Terminas la historia y cobras la fama que llevas.\n\n<span class="small">💾 Tu historia se guarda sola. Puedes cerrar el juego y seguir después.</span></p>');addBtn('Sí, rendirme','',()=>endRun(false));addBtn('No','alt',showMap);});}
+ addBtn('📱 Celular','alt',celularView);addBtn('📜 Mi mazo ('+P.deck.length+')','alt',()=>deckView(showMap));addBtn('🏠 Salir al menú (se guarda)','alt',()=>{saveRun();menu();});if(P.chSnap&&P.row>0)addBtn('🔁 Reiniciar capítulo','alt',()=>{showPanel('<h1>¿Reiniciar el capítulo '+(P.ch+1)+'?</h1><p>Vuelves al inicio del capítulo con lo que tenías al llegar. Se pierde lo que hayas ganado en este capítulo.</p>');addBtn('Sí, reiniciar','gold',chRestart);addBtn('No','alt',showMap);});addBtn('🏳️ Rendirse','alt',()=>{showPanel('<h1>¿Rendirte?</h1><p>Terminas la historia y cobras la fama que llevas.\n\n<span class="small">💾 Tu historia se guarda sola. Puedes cerrar el juego y seguir después.</span></p>');addBtn('Sí, rendirme','',()=>endRun(false));addBtn('No','alt',showMap);});}
 function doStep(s){const a=ACTS[P.act];P._lt=s.t;
  if(s.t==='story'){if(P.flags.proLater){const L_=P.flags.proLater;P.flags.proLater=0;return talk(L_,()=>whyChoice(next));}if(!s.id)s.id=storyId(P.ch,s.slot);return runStory(s.id,next);}
  if(s.t==='fight'){const k=pick(a.pool);return(P.qs&&P.ch===0&&P.row===0?(f=>f()):preLife)(()=>startCombat(k,'lucha',{stip:s.stip}));}
@@ -1669,7 +1674,7 @@ function pxTextNode(n){const t=n.nodeValue;if(!t||!EMTEST.test(t))return;const p
 function pxWalk(r){if(!r)return;if(r.nodeType===3)return pxTextNode(r);if(r.nodeType!==1||/^(SCRIPT|STYLE|TEXTAREA|INPUT)$/.test(r.nodeName))return;const tw=document.createTreeWalker(r,4);const L=[];let n;while((n=tw.nextNode()))L.push(n);L.forEach(pxTextNode);}
 function pxStart(){if(typeof MutationObserver==='undefined'||!document.body||!document.createTreeWalker)return;pxWalk(document.body);new MutationObserver(ms=>{for(const m of ms){if(m.type==='characterData')pxTextNode(m.target);else m.addedNodes.forEach(pxWalk);}}).observe(document.body,{childList:true,subtree:true,characterData:true});}
 
-// ================= v2.7: ring, luchador, celular, retos, vitrina, calidad =================
+// ================= v2.8: ring, luchador, celular, retos, vitrina, calidad =================
 // ---------- luchas especiales ----------
 const STIPS={jaula:{n:'Lucha en jaula',e:'🔒',d:'Nadie puede salir del ring. Las aéreas pegan 30% más desde lo alto.'},todo:{n:'Todo se vale',e:'🪑',d:'No hay réferi que castigue. Los dos pegan más fuerte.'},cabellera:{n:'Cabellera contra cabellera',e:'💇',d:'Si ganas, rapas al rival frente a todos (+20⭐).'},relevos:{n:'Lucha de parejas (2 vs 2)',e:'🤝',d:'Tú y tu compañero contra dos rivales: hay que vencer a los dos. Usa el botón Relevo para meter a tu compañero una vez.'}};
 function applyStip(){const s=C.stip;if(!s)return;const S=STIPS[s];if(s==='todo'){C.e.dmgB+=3;C.p.st.furia=(C.p.st.furia||0)+1;}if(s==='relevos'){if(!P.partner||P.partner===P.l)P.partner=pick(Object.keys(LUCH).filter(k=>k!==P.l));const pool=(ACTS[Math.min(P.act||0,2)].pool||[]).filter(k=>k!==C.e.key&&EN[k]);const tk=pool.length?pick(pool):'gallo',T=EN[tk];C.e.tag={key:tk,n:T.n,m:T.m,mv:T.mv,hp:Math.round(C.e.max*.55)};C.startBlock+=4;}
@@ -1881,11 +1886,19 @@ function quickGo(){const ks=META.unl.length?META.unl:['T'];const l=pick(ks);cons
 function quickEnd(won){const c=won?12:4;coins(c);META.qW=META.qW||{w:0,l:0};META.qW[won?'w':'l']++;saveMeta();sfx[won?'win':'lose']();
  showPanel('<h1>'+(won?'⚡ ¡Ganaste la lucha rápida!':'⚡ Esta vez no')+'</h1><p>💰 +'+c+' · ✨ +'+(won?12:5)+' XP<br>Récord: '+META.qW.w+'G - '+META.qW.l+'P'+casiTxt()+'</p>');P=null;
  addBtn('⚡ Otra lucha rápida','gold',quickGo);shareBtn();addBtn('Volver al menú','alt',menu);}
+
+// ---------- Trofeo: ganar la máscara ----------
+function maskTrophy(key,m,turns,ex,cb){P.bm=P.bm||[];if(!P.bm.some(x=>x.k===key))P.bm.push({k:key,m});saveRun();
+ const n=EN[key].n,slots=[0,1,2,3,4,5,6].map(i=>{const x=P.bm[i];return'<div class="tslot'+(x?' on':'')+(x&&x.k===key?' nw':'')+'">'+(x?ic('mascara','',x.m):'?')+'</div>';}).join('');
+ showPanel('<div class="troph"><div class="trays"></div><div class="tlab">¡MÁSCARA CONTRA MÁSCARA!</div><div class="tmask">'+ic('mascara','',m)+'</div><h1 class="tttl">¡GANASTE LA MÁSCARA<br>DE '+n.toUpperCase()+'!</h1><p class="small" style="text-align:center">'+ex+'</p><div class="tstat"><span>⏱ '+turns+' turnos</span><span>❤ '+P.hp+'/'+P.max+'</span></div><div class="tcol">'+slots+'</div><p class="small" style="text-align:center">Máscaras ganadas: '+P.bm.length+' de 7</p></div>');
+ sfx.crowd();vib([60,40,60,40,200]);confetti(60);setTimeout(()=>confetti(50),W(700));setTimeout(()=>{confetti(40);sfx.win&&sfx.win();},W(1400));
+ voz([{t:'¡Se le cae la máscara! ¡'+pnm()+' gana la máscara de '+n+'!',p:1.25,r:1.12}],true);
+ setTimeout(()=>{addBtn('🎭 ¡Levantar la máscara!','gold',cb);},W(1200));}
 // ---------- Victoria / derrota ----------
 function win(){if(!C||C.over)return;try{P.lastStip=C.stip;wkFightWin(C);}catch(e){}C.over=true;C.busy=true;musicStop();render();LASTDT=C.dmgTaken;(C.surrender?(f=>{shout('¡SE RINDIÓ!');voz([{t:'¡Se rindió! ¡Se rindió!',p:1.55,r:1.2}],true);setTimeout(f,W(1000));}):count123)(()=>{const kind=C.kind,key=C.e.key,m=C.e.m,turns=C.turn;if(C.dmgTaken===0&&kind!=='tut')unlock('intocable');if(C.lastId==='rana')unlock('rana');
  if(kind==='boss'||kind==='temporada'||kind==='nemesis'){C=null;render();UNM={m,t:0};const nm=(key==='veneno'||key==='venenoH')?'Beto, tu amigo de la infancia':pick(UNMASKED);shout('¡SE QUITA LA MÁSCARA!');confetti(40);
   if(!META.unmasked.includes(key)){META.unmasked.push(key);saveMeta();}
-  setTimeout(()=>{UNM=null;afterWin(kind,key,turns,'Bajo la máscara de '+EN[key].n+' estaba... ¡'+nm+'!');},W(1700));}
+  const ex='Bajo la máscara de '+EN[key].n+' estaba... ¡'+nm+'!';setTimeout(()=>{UNM=null;if(kind==='boss'&&isStory())maskTrophy(key,m,turns,ex,()=>afterWin(kind,key,turns,ex));else afterWin(kind,key,turns,ex);},W(1900));}
  else afterWin(kind,key,turns);});}
 function afterWin(kind,key,turns,extra){lastFight(true,key,turns,C&&C.e);addXP(kind==='boss'?30:12);C=null;P.won++;META.fw=(META.fw||0)+1;sfx.win();
  if(P.tut)return tutEnd();
@@ -2059,7 +2072,7 @@ function menu(){if(META.prog===undefined){META.prog=((META.stats&&META.stats.run
  if(META.tutDone)h+='<button class="bigb alt qk" data-k="quick"><span class="bi">⚡</span><div>LUCHA RÁPIDA<small>Una pelea · 3 minutos</small></div></button>';
  h+='<div class="modes"><button class="md" data-k="torneo"><span>🏆</span>Torneo</button><button class="md" data-k="daily">'+dot(META.daily.date!==todayStr())+'<span>📅</span>Del día</button><button class="md" data-k="retos"><span>👻</span>Retadores</button><button class="md" data-k="promo">'+dot(promoReady())+'<span>🏟️</span>Promotora</button></div></div>';
  h+='<div class="nav"><button class="nv" data-k="packs">'+dot(META.freePack!==todayStr())+'<span>🎁</span>Sobres</button><button class="nv" data-k="deck"><span>🃏</span>Mazo</button><button class="nv" data-k="mask"><span>🎨</span>Luchador</button><button class="nv" data-k="gym"><span>🏋️</span>Mejoras</button><button class="nv" data-k="more">'+dot(claim)+'<span>☰</span>Más</button></div>';
- h+='<div class="ver">'+SEASON.n+(META.titulo?' · 🏅 '+META.titulo:'')+' · v2.7</div>';
+ h+='<div class="ver">'+SEASON.n+(META.titulo?' · 🏅 '+META.titulo:'')+' · v2.8</div>';
  const tw=$('#tw');tw.innerHTML=h;titleOn(true);
  if(tw.querySelectorAll)tw.querySelectorAll('[data-k]').forEach(el=>{const k=el.dataset.k;if(!MUNL[k])return;if(!mOk(k)){el.classList.add('lk');el.insertAdjacentHTML('beforeend','<em class="lkic">🔒</em>');}else if(fresh.includes(k))el.insertAdjacentHTML('beforeend','<em class="nwb">NUEVO</em>');});
  if(fresh.length)setTimeout(()=>toastU(fresh),500);
